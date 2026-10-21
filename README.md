@@ -103,6 +103,15 @@ Screening awal menunjukkan korelasi mingguan −0,19, tetapi data IDR=X memiliki
 - **Batas:** |r| ≥ 0,300, dihitung 3 desimal tanpa pembulatan ke atas.
 - **Hasil:** lolos → driver (Core). Tidak lolos → **permanen** alat bantu seperti EIDO (tetap dipakai untuk konversi IHSG ke USD).
 
+**Amandemen 1 (21 Okt 2026), dibuat sebelum korelasi pasca-cleaning dihitung.** Disetujui pemilik project.
+- **Aturan baru (menggantikan definisi cleaning di atas):** bad tick = |log return harian| > 5% yang dibalik minimal 50% ke arah sebaliknya **dalam ≤ 5 hari bursa**. Semua harga dari hari lonjakan sampai sehari sebelum pembalikan dijadikan kosong. Aturan lama adalah kasus khusus dengan batas 1 hari. Tidak ada filter lain. Aturan ini generik (tanpa tanggal atau nilai tertentu) dan berlaku untuk semua seri FX.
+- **Alasan:** data quality Phase 1 menemukan kuotasi salah USD/IDR yang bertahan 2–3 hari bursa (Nov–Des 2013), sehingga lolos dari aturan satu hari. Dua di antaranya jatuh di hari Jumat (29 Nov dan 6 Des 2013), yaitu harga mingguan yang dipakai ukuran di atas. Dua harga itu menghasilkan return mingguan sekitar −19% dan +22% (±20σ), yang menyumbang lebih dari 60% variansi return mingguan USD/IDR 2010–2019. Dengan aturan lama, ukuran ini praktis hanya mencerminkan dua minggu.
+- **Pemilihan batas 5 hari:** satu minggu bursa, ditetapkan sebagai satuan alami dan bukan hasil penyetelan. Dry-run cleaning (tanpa menghitung korelasi) memberi hasil identik untuk batas 3 dan 5 hari: 13 hari dibuang, semuanya harga yang jelas salah, dan tidak ada tanggal 2008 yang ikut terbuang. Batas 2 hari justru keliru: harga asli 4–5 Des 2013 terbuang, sedangkan 29 Nov lolos.
+- **Yang tidak berubah:** ukuran (Pearson return log mingguan Jumat–Jumat, metode `scripts/screening.py`), periode 2010–2019, ambang 5%, rasio pembalikan 50%, batas |r| ≥ 0,300 tanpa pembulatan ke atas, dan konsekuensi lolos/tidak lolos. Ambang 5% sengaja tidak diturunkan untuk menangkap 21 Okt 2013 (−4,94%), karena itu berarti menyetel parameter berdasarkan satu titik data yang sudah dilihat. Tanggal itu jatuh di hari Senin, jadi tidak memengaruhi ukuran mingguan.
+- **Kejujuran:** korelasi sebelum cleaning (−0,19, hasil screening) sudah diketahui. Korelasi pasca-cleaning, baik dengan aturan lama maupun aturan baru, belum dihitung siapa pun saat amandemen ini ditulis.
+- **Pelaporan:** hasil yang mengikat memakai aturan baru. |r| dengan aturan lama (batas 1 hari) dilaporkan berdampingan sebagai sensitivitas yang tidak mengikat. Kalau status lolos/gagal keduanya berbeda, hal itu ditulis secara eksplisit.
+- **Implementasi:** fungsi cleaning di `src/` dengan tes data sintetis, termasuk kasus run beberapa hari dan kasus batas 2 hari yang keliru sebagai regresi. Dikerjakan di Phase 2.
+
 ### 5. Dollar Index → Nanti
 Kalah head-to-head dari VIX sebagai wakil channel risk-off / risk-appetite sesi AS: korelasi mingguan −0,11 vs −0,28, lead −0,16 vs −0,27. Tetap ada di blok `nanti:` (tidak dihapus).
 
@@ -125,7 +134,9 @@ Diperbarui setelah notebook 01 dijalankan dengan data asli (download 21 Okt 2026
 - **^JKSE kehilangan hari bursa 29 Sep 2008** (hari terakhir sebelum libur Lebaran 30 Sep–3 Okt, tutup ±1.832). Akibatnya return Yahoo pada 6 Okt 2008 (−10,69%) mencakup dua hari bursa; angka resmi −10,03%. Ini satu-satunya FAIL di sanity check 2008 dan sumbernya data Yahoo, bukan angka referensi. Puncak 9 Jan, dasar 28 Okt, penurunan 8 Okt, dan hari suspend 9–10 Okt 2008 semuanya cocok.
 - **USD/IDR (IDR=X):**
   - 8 dugaan bad tick sesuai aturan yang dikunci, termasuk dua harga yang kurang satu digit (1 Nov 2010 dan 7 Feb 2012, ±888 dan 892) serta deretan 2013.
-  - Okt–Des 2013 ada harga basi konstan 9.612,5 yang muncul berulang. Sebagian **tidak tertangkap** aturan poin 4: 21 Okt 2013 (−4,94%, di bawah ambang 5%), 29 Nov–3 Des 2013 dan 6–9 Des 2013 (harga salah bertahan 2–3 hari, jadi tidak dibalik keesokan harinya). Dua tanggal ini hari Jumat, jadi langsung masuk return mingguan uji ulang USD/IDR.
+  - Harga basi konstan 9.612,5 muncul 34 kali dari Nov 2012 sampai Des 2013, 27 di antaranya hari Senin. Sampai Juli 2013 nilainya dekat kurs asli (selisih 0–4,3%); mulai Okt 2013 selisihnya 14–21%.
+  - Aturan awal poin 4 tidak menangkap 29 Nov–3 Des 2013 dan 6–9 Des 2013 (harga salah bertahan 2–3 hari). Dua tanggal ini hari Jumat, jadi masuk return mingguan uji ulang USD/IDR. Ditangani lewat **Amandemen 1** di poin 4 (total 13 hari dibuang).
+  - **Sisa yang tetap ada setelah Amandemen 1:** 21 Okt 2013 (−4,94%, di bawah ambang 5%) dan 25 hari Senin basi di Nov 2012–Jul 2013 (selisih 0–4,3%). Semuanya tidak memengaruhi uji ulang mingguan, tetapi menghasilkan return harian palsu. Cara menanganinya untuk analisis harian (Phase 4) diputuskan sebelum Phase 4.
   - Gap 26 hari (1–25 Agu 2008 tidak ada data).
   - Return nol 1,95% dari seluruh hari, terkonsentrasi di 2012–2014 (4,6–8,8% per tahun).
 - **Gerakan besar di indeks/ETF** yang ditandai dugaan bad tick (EEM 29 Sep 2008, 13 Nov 2008, 16 Mar 2020; HSI 27 Okt 2008; EIDO 12 Mar 2020) jatuh di episode krisis dan tampak nyata (pembalikan tajam di pasar yang panik). Sesuai poin 8, tidak dibuang tanpa konfirmasi.
