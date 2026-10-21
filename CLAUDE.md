@@ -37,9 +37,11 @@ Yang paling penting:
   - **Harus diputuskan sebelum Phase 4:** sisa harga basi USD/IDR (21 Okt 2013 dan 25 hari Senin bernilai
     ±9.612,5 di Nov 2012–Jul 2013). Tidak memengaruhi uji ulang mingguan, tetapi membuat return harian palsu.
   - Kandidat regime krisis untuk Phase 5: 16 Okt 2026 (IHSG −11,57%).
-- Phase 2/7 (berikutnya):
-  - Cleaning sesuai kebijakan di README (FX: aturan poin 4 + Amandemen 1).
-  - Uji ulang USD/IDR (laporkan juga versi aturan lama sebagai sensitivitas).
-  - Hapus hari suspend.
-  - Hitung return harian dan mingguan (close-to-close), plus IHSG dalam USD.
-  - Modul baru: `src/preprocess.py` + `notebooks/02_alignment_returns.ipynb`.
+- Phase 2/7: **selesai** (21 Okt 2026; `src/preprocess.py`, `notebooks/02_alignment_returns.ipynb`, `reports/phase2/`).
+  - Uji ulang USD/IDR: |r| = 0.334 (Amandemen 1, mengikat), sehingga USD/IDR menjadi **driver**. Aturan lama memberi 0.189
+    (tidak lolos). Status keduanya berbeda, dan itu sudah ditulis eksplisit di README poin 4.
+  - Panel di `data/processed/` (tidak di-commit): `prices_clean`, `daily_pair_returns` (dengan `gap_days` dan
+    `flag_stale_quote`), `weekly_returns` (W-FRI, termasuk JKSE_USD), `jkse_usd`, `stale_quote_flags`.
+  - Masih terbuka sebelum Phase 4: cara menangani 25 kuotasi basi USD/IDR yang ditandai (42 return harian).
+- Phase 3/7 (berikutnya): korelasi statis, yaitu harian vs mingguan, Pearson vs Spearman, dan IHSG dalam IDR vs USD.
+  Baca panel dari `data/processed/` dan `reports/phase2/decisions.json`.

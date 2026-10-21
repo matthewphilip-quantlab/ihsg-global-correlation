@@ -1,0 +1,4 @@
+varian,r,abs_r_3dp,n_minggu,lolos,mengikat
+sebelum cleaning,-0.1895,0.189,507,False,False
+"aturan lama (<= 1 hari, sensitivitas)",-0.1895,0.189,507,False,False
+"Amandemen 1 (<= 5 hari, MENGIKAT)",-0.334,0.334,507,True,True

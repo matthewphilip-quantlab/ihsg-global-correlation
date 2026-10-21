@@ -15,7 +15,7 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 | Phase | Isi | Status |
 |---|---|---|
 | 1/7 | Setup, data ingestion, data quality | Selesai (run data asli 21 Okt 2026) |
-| 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Belum |
+| 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Selesai (21 Okt 2026); USD/IDR lolos uji ulang → driver |
 | 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD) | Belum |
 | 4/7 | Lead-lag & efek zona waktu | Belum |
 | 5/7 | Rolling correlation & regime krisis | Belum |
@@ -53,7 +53,7 @@ git init
 git add .
 git commit -m "Phase 1: scaffold, config, data loader, data quality"
 git branch -M main
-git remote add origin https://github.com/matthewphilip-quantlab/ihsg-global-correlation.git
+git remote add origin git@github.com:matthewphilip-quantlab/ihsg-global-correlation.git
 git push -u origin main
 ```
 
@@ -72,7 +72,7 @@ Seri dipilih lewat screening 2010–2019 (`scripts/screening.py`, hasil di `repo
 | VIX | ^VIX | setelah | Wakil channel risk-off: lead −0,27 |
 | Tembaga | HG=F | setelah | Wakil komoditas industri: mingguan 0,28, lead 0,12 |
 | Brent | BZ=F | setelah | **Override** (lihat Keputusan) |
-| USD/IDR | IDR=X | setelah | Wajib untuk analisis kurs; status driver diputuskan di Phase 2 (aturan dikunci) |
+| USD/IDR | IDR=X | setelah | **Driver**: lolos uji ulang Phase 2 (mingguan −0,334 pasca-cleaning; lihat poin 4) |
 
 Alat bantu: EIDO (IHSG dalam USD di jam bursa AS; data mulai Mei 2010). Seri ekspansi beserta alasannya ada di blok `nanti:` di `config/tickers.yaml`.
 
@@ -110,7 +110,22 @@ Screening awal menunjukkan korelasi mingguan −0,19, tetapi data IDR=X memiliki
 - **Yang tidak berubah:** ukuran (Pearson return log mingguan Jumat–Jumat, metode `scripts/screening.py`), periode 2010–2019, ambang 5%, rasio pembalikan 50%, batas |r| ≥ 0,300 tanpa pembulatan ke atas, dan konsekuensi lolos/tidak lolos. Ambang 5% sengaja tidak diturunkan untuk menangkap 21 Okt 2013 (−4,94%), karena itu berarti menyetel parameter berdasarkan satu titik data yang sudah dilihat. Tanggal itu jatuh di hari Senin, jadi tidak memengaruhi ukuran mingguan.
 - **Kejujuran:** korelasi sebelum cleaning (−0,19, hasil screening) sudah diketahui. Korelasi pasca-cleaning, baik dengan aturan lama maupun aturan baru, belum dihitung siapa pun saat amandemen ini ditulis.
 - **Pelaporan:** hasil yang mengikat memakai aturan baru. |r| dengan aturan lama (batas 1 hari) dilaporkan berdampingan sebagai sensitivitas yang tidak mengikat. Kalau status lolos/gagal keduanya berbeda, hal itu ditulis secara eksplisit.
-- **Implementasi:** fungsi cleaning di `src/` dengan tes data sintetis, termasuk kasus run beberapa hari dan kasus batas 2 hari yang keliru sebagai regresi. Dikerjakan di Phase 2.
+- **Implementasi:** fungsi cleaning di `src/` dengan tes data sintetis, termasuk kasus run beberapa hari dan kasus batas 2 hari yang keliru sebagai regresi. Dikerjakan di Phase 2 (`src/preprocess.py`, `tests/test_preprocess.py`).
+
+**Hasil uji ulang (Phase 2, 21 Okt 2026; `reports/phase2/usdidr_retest.csv`):**
+
+| Varian | r mingguan 2010–2019 | \|r\| 3 desimal | Minggu | Status |
+|---|---|---|---|---|
+| Sebelum cleaning | −0,1895 | 0,189 | 507 | tidak lolos |
+| Aturan lama (≤ 1 hari), sensitivitas, tidak mengikat | −0,1895 | 0,189 | 507 | tidak lolos |
+| **Amandemen 1 (≤ 5 hari), MENGIKAT** | **−0,3340** | **0,334** | 507 | **lolos → driver (Core)** |
+
+- **Keputusan: USD/IDR menjadi driver (Core).** Status di `config/tickers.yaml` diperbarui menjadi `driver`.
+- **PERHATIAN: status lolos/gagal berbeda antara aturan lama dan Amandemen 1.** Dengan aturan lama, USD/IDR tidak lolos dan menjadi alat bantu permanen.
+  - Seluruh perbedaan berasal dari dua harga Jumat yang salah (29 Nov dan 6 Des 2013). Hanya membuang dua harga itu sudah menghasilkan r = −0,3340.
+  - Aturan lama memberi angka yang sama persis dengan data mentah, karena 8 hari yang dibuangnya tidak ada yang menjadi harga mingguan.
+- **Catatan kejujuran:** |r| = 0,334 hanya 0,034 di atas batas, kurang dari satu standard error korelasi mingguan (±0,044 untuk ~520 minggu). Statusnya sah menurut aturan yang dikunci, tetapi hubungan USD/IDR–IHSG di level mingguan sebaiknya dibaca sebagai "moderat di ambang batas", bukan kuat.
+- **Tanda negatif sesuai teori:** rupiah melemah (USD/IDR naik) bersamaan dengan IHSG turun.
 
 ### 5. Dollar Index → Nanti
 Kalah head-to-head dari VIX sebagai wakil channel risk-off / risk-appetite sesi AS: korelasi mingguan −0,11 vs −0,28, lead −0,16 vs −0,27. Tetap ada di blok `nanti:` (tidak dihapus).
@@ -126,6 +141,10 @@ Return IHSG dipecah jadi gap pembukaan (close t → open t+1) dan intraday (open
 ### 8. Kebijakan cleaning (Phase 2)
 - **FX:** dugaan bad tick dibuang otomatis dengan aturan di poin 4.
 - **Indeks, ETF, komoditas, sentimen:** gerakan besar hanya ditandai lalu diinspeksi manual. Gerakan ini bisa nyata, misalnya Oktober 2008. Pembuangan hanya dilakukan kalau dikonfirmasi salah, dan setiap pembuangan dicatat di sini.
+- **Catatan Phase 2 (21 Okt 2026):**
+  - Tidak ada pembuangan di indeks, ETF, komoditas, atau sentimen. 27 gerakan besar hanya ditandai (`reports/phase2/large_moves_non_fx.csv`).
+  - Di ^JKSE, satu baris basi diperlakukan sebagai hari libur: 1 Des 2017 (libur Maulid Nabi, Close = kemarin, Volume 0).
+  - Semua penghapusan, termasuk 13 hari USD/IDR, ada di `reports/phase2/cleaning_log.csv`.
 
 ## Rencana untuk phase berikutnya
 
@@ -152,9 +171,16 @@ Diperbarui setelah notebook 01 dijalankan dengan data asli (download 21 Okt 2026
   - 8 dugaan bad tick sesuai aturan yang dikunci, termasuk dua harga yang kurang satu digit (1 Nov 2010 dan 7 Feb 2012, ±888 dan 892) serta deretan 2013.
   - Harga basi konstan 9.612,5 muncul 34 kali dari Nov 2012 sampai Des 2013, 27 di antaranya hari Senin. Sampai Juli 2013 nilainya dekat kurs asli (selisih 0–4,3%); mulai Okt 2013 selisihnya 14–21%.
   - Aturan awal poin 4 tidak menangkap 29 Nov–3 Des 2013 dan 6–9 Des 2013 (harga salah bertahan 2–3 hari). Dua tanggal ini hari Jumat, jadi masuk return mingguan uji ulang USD/IDR. Ditangani lewat **Amandemen 1** di poin 4 (total 13 hari dibuang).
-  - **Sisa yang tetap ada setelah Amandemen 1:** 21 Okt 2013 (−4,94%, di bawah ambang 5%) dan 25 hari Senin basi di Nov 2012–Jul 2013 (selisih 0–4,3%). Semuanya tidak memengaruhi uji ulang mingguan, tetapi menghasilkan return harian palsu. Cara menanganinya untuk analisis harian (Phase 4) diputuskan sebelum Phase 4.
+  - **Sisa yang tetap ada setelah Amandemen 1:** 21 Okt 2013 (−4,94%, di bawah ambang 5%) dan 25 hari basi di Nov 2012–Jul 2013 (21 di antaranya Senin; selisih 0–4,3%).
+    - Di Phase 2, ke-25 hari basi itu ditandai otomatis (nilai yang persis berulang ≥ 10 kali, ±0,05%). Tandanya ada di kolom `flag_stale_quote` pada panel harian, yang mencakup 42 return harian pasangan IHSG–USD/IDR. Harga-harga itu tidak dibuang.
+    - Tidak ada yang menjadi harga mingguan, jadi uji ulang mingguan tidak terpengaruh. Namun harga-harga itu menghasilkan return harian palsu, dan cara menanganinya untuk analisis harian (Phase 4) diputuskan sebelum Phase 4.
+    - 21 Okt 2013 tidak tertangkap penanda ini.
   - Gap 26 hari (1–25 Agu 2008 tidak ada data).
   - Return nol 1,95% dari seluruh hari, terkonsentrasi di 2012–2014 (4,6–8,8% per tahun).
+- **IHSG dalam USD (Phase 2)** = ^JKSE / USD/IDR (bersih), dihitung hanya di tanggal yang dua-duanya punya harga.
+  - **Keterbatasan timing:** bar harian IDR=X ditutup di jam AS (dini hari WIB), sedangkan IHSG tutup 16:00 WIB. Kurs yang dipakai bukan kurs pada saat IHSG tutup, melainkan kurs beberapa jam setelahnya. Pergerakan rupiah di sesi Eropa/AS ikut masuk ke return harian IHSG dalam USD, sehingga korelasi harian seri ini dengan seri sesi "after" bisa terlalu tinggi.
+  - Di level mingguan efek ini jauh lebih kecil. EIDO (diperdagangkan di jam AS) dipakai sebagai pembanding di Phase 4.
+- **Return (Phase 2):** log return dihitung hanya di tanggal yang sama-sama buka untuk tiap pasangan IHSG–seri, tanpa forward-fill. Sekitar 1,5–2,3% return harian mencakup jeda lebih dari 4 hari kalender (libur panjang), dan jedanya tercatat di kolom `gap_days`.
 - **Gerakan besar di indeks/ETF** yang ditandai dugaan bad tick (EEM 29 Sep 2008, 13 Nov 2008, 16 Mar 2020; HSI 27 Okt 2008; EIDO 12 Mar 2020) jatuh di episode krisis dan tampak nyata (pembalikan tajam di pasar yang panik). Sesuai poin 8, tidak dibuang tanpa konfirmasi.
 - **Crash IHSG 16 Okt 2026** (−11,57%, EIDO −16%) terlihat di dua sumber independen, jadi diperlakukan sebagai gerakan nyata. Close Yahoo 5.185,10 sedikit beda dari angka berita (5.199,96); bar hari terakhir bisa belum final saat download. Dicatat sebagai kandidat regime krisis untuk Phase 5.
 - **Tanggal mulai:** Nifty 50 baru ada sejak 17 Sep 2007 dan Brent (BZ=F) sejak 30 Jul 2007. Keduanya tetap mencakup 2008. Brent juga punya gap 17 hari hingga 1 Mei 2009.

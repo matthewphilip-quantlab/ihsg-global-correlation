@@ -10,10 +10,15 @@ def test_core_has_ten_series_with_agreed_members(cfg):
     assert ids == ["STI", "KLCI", "EEM", "SPX", "NIFTY", "HSI", "VIX", "COPPER", "BRENT", "USDIDR"]
 
 
-def test_overrides_and_pending_status(cfg):
+def test_overrides_and_usdidr_status(cfg):
     core = {s["id"]: s for s in cfg["core"]}
     assert core["HSI"]["override"] and core["BRENT"]["override"]
-    assert core["USDIDR"]["status"] == "pending_phase2"
+    assert core["USDIDR"]["status"] == "driver"            # hasil uji ulang Phase 2
+
+
+def test_phase2_rules_in_config(cfg):
+    assert cfg["quality"]["fx_cleaning"] == {"max_reversal_days": 5, "max_reversal_days_old": 1}
+    assert cfg["usdidr_retest"]["min_abs_corr"] == 0.300
 
 
 def test_dxy_kept_in_nanti_with_reason(cfg):

@@ -43,6 +43,25 @@ quality:
     open_eq_prev_close_pct: 5.0  # Open = Close kemarin (gap nol palsu)
     flat_bar_pct: 5.0            # Open = High = Low = Close (OHLC diisi dari Close)
   min_years_open_module: 5       # minimal panjang periode kalau modul hanya valid sebagian
+  # Cleaning FX (README poin 4 + Amandemen 1, DIKUNCI). Ambang = spike_threshold.fx, rasio = reversal_ratio.
+  fx_cleaning:
+    max_reversal_days: 5         # Amandemen 1 (MENGIKAT): pembalikan boleh dalam <= 5 hari bursa
+    max_reversal_days_old: 1     # aturan awal poin 4; hanya untuk sensitivitas, tidak mengikat
+  # Kuotasi basi FX: nilai yang persis berulang >= min_count kali. HANYA DITANDAI, tidak dibuang
+  # (cara menanganinya untuk analisis harian diputuskan sebelum Phase 4).
+  stale_quote:
+    min_count: 10
+    tol_pct: 0.05                # hari dengan harga dalam +-0.05% dari nilai berulang ikut ditandai
+
+# Uji ulang USD/IDR (README poin 4). Periode = project.screening_window, metode = scripts/screening.py.
+usdidr_retest:
+  id: USDIDR
+  min_abs_corr: 0.300            # |r| dipotong 3 desimal (tanpa pembulatan ke atas)
+
+# Seri turunan
+jkse_usd:
+  id: JKSE_USD                   # IHSG dalam USD = ^JKSE / USD/IDR (USD/IDR yang sudah dibersihkan)
+  fx_id: USDIDR
 
 # Angka referensi IHSG 2008 untuk validasi data Yahoo (bukan untuk analisis).
 # Sumber: catatan pengguna; status FAIL berarti salah satu sisi (Yahoo atau referensi) perlu dicek.
@@ -75,7 +94,7 @@ core:
   - {id: BRENT,  ticker: "BZ=F",   name: Brent,               category: commodity, session: after, transform: log,
      override: true, note: "Override: channel migas; hipotesis regime; lihat README"}
   - {id: USDIDR, ticker: "IDR=X",  name: USD/IDR,             category: fx,        session: after, transform: log,
-     status: pending_phase2, note: "Driver hanya jika |corr mingguan| pasca-cleaning >= 0.300; aturan di README"}
+     status: driver, note: "Driver: lolos uji ulang Phase 2 (|r| mingguan 2010-2019 pasca-cleaning Amandemen 1 = 0.334 >= 0.300; aturan lama 0.189); lihat README poin 4"}
 
 # Alat bantu analisis (bukan driver)
 tools:

@@ -77,3 +77,33 @@ def plot_flagged_moves(close: pd.Series, moves: pd.DataFrame, title: str):
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
     fig.tight_layout()
     return fig
+
+
+def plot_fx_cleaning(raw: pd.Series, clean: pd.Series, title: str, start: str | None = None,
+                     end: str | None = None):
+    """Harga FX sebelum dan sesudah cleaning; titik = harga yang dibuang."""
+    raw, clean = raw.dropna().loc[start:end], clean.loc[start:end]
+    removed = raw[clean.reindex(raw.index).isna()]
+    fig, ax = plt.subplots(figsize=(10, 3.6))
+    ax.plot(raw.index, raw.values, color=GRID, linewidth=1.5, label="Sebelum cleaning")
+    ax.plot(clean.index, clean.values, color=SERIES[0], linewidth=1.5, label="Sesudah cleaning")
+    if len(removed):
+        ax.scatter(removed.index, removed.values, s=40, color=SERIES[1], edgecolor="white",
+                   linewidth=1.5, zorder=3, label=f"Dibuang ({len(removed)})")
+    _style(ax, title)
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
+    fig.tight_layout()
+    return fig
+
+
+def plot_idr_vs_usd(jkse: pd.Series, jkse_usd: pd.Series, title: str):
+    """IHSG dalam rupiah vs dalam USD, keduanya diindeks = 100 di tanggal bersama pertama."""
+    df = pd.concat([jkse.rename("idr"), jkse_usd.rename("usd")], axis=1).dropna()
+    df = df / df.iloc[0] * 100
+    fig, ax = plt.subplots(figsize=(10, 3.8))
+    ax.plot(df.index, df["idr"], color=SERIES[0], linewidth=1.5, label="IHSG (rupiah)")
+    ax.plot(df.index, df["usd"], color=SERIES[1], linewidth=1.5, label="IHSG dalam USD")
+    _style(ax, title, f"Indeks ({df.index[0]:%b %Y} = 100)")
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
+    fig.tight_layout()
+    return fig
