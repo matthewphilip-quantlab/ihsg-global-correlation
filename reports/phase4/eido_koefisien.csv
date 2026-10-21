@@ -1,0 +1,11 @@
+model,variabel,beta,ci_lo,ci_hi,t_hac,p
+"pembanding (S&P, EEM)",r_SPX,0.0914,-0.0075,0.1902,1.8112,0.0701
+"pembanding (S&P, EEM)",r_EEM,0.2249,0.1546,0.2952,6.2727,0.0
+EIDO saja,r_eido,0.2076,0.1735,0.2417,11.9459,0.0
+Δpremium saja,d_premium,0.2474,0.2126,0.2822,13.9224,0.0
+pembanding + EIDO,r_SPX,0.0948,-0.0029,0.1925,1.9014,0.0573
+pembanding + EIDO,r_EEM,0.1231,0.0571,0.1891,3.6555,0.0003
+pembanding + EIDO,r_eido,0.1061,0.0603,0.1519,4.537,0.0
+pembanding + Δpremium,r_SPX,0.0662,-0.0296,0.1619,1.354,0.1757
+pembanding + Δpremium,r_EEM,0.1377,0.0626,0.2128,3.5935,0.0003
+pembanding + Δpremium,d_premium,0.1403,0.0925,0.188,5.7571,0.0

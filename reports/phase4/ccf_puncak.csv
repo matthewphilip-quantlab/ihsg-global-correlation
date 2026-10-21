@@ -1,0 +1,11 @@
+id,k_puncak,r_puncak,p_bh_puncak,r_k0,r_k1,name,session
+USDIDR,-1,-0.1354,0.0,-0.0911,-0.0377,USD/IDR,after
+BRENT,0,0.117,0.0,0.117,0.1087,Brent,after
+COPPER,0,0.1672,0.0,0.1672,0.1215,Tembaga,after
+NIFTY,0,0.4222,0.0,0.4222,0.0864,Nifty 50,after
+EEM,1,0.3793,0.0,0.2646,0.3793,iShares MSCI EM,after
+SPX,1,0.3357,0.0,0.159,0.3357,S&P 500,after
+VIX,1,-0.2683,0.0,-0.1311,-0.2683,VIX,after
+HSI,0,0.517,0.0,0.517,0.0059,Hang Seng,sync
+KLCI,0,0.5003,0.0,0.5003,0.0103,KLCI Malaysia,sync
+STI,0,0.5313,0.0,0.5313,0.029,Straits Times,sync

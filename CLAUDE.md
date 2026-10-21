@@ -66,11 +66,15 @@ Yang paling penting:
   - Hipotesis screening "USD/IDR menguat 2010-2014 -> 2015-2019" dicabut sebagai artefak bad tick 2013
     (data bersih p = 0,11).
   - Parameter Phase 3 ada di `analysis:` pada tickers.yaml.
-- Phase 4/7 (berikutnya), sesuai rencana yang dikunci:
-  - cross-correlation lead-lag
-  - Granger (presedensi prediktif)
-  - premium/diskon EIDO + kointegrasi
-  - sensitivitas gap pembukaan EKSPLORATIF
-  - DIPUTUSKAN: harga USD/IDR ber-`flag_stale_quote` dibuang (NaN) di semua analisis harian mulai Phase 4;
-    versi lengkap dilaporkan sebagai sensitivitas.
-  - DIKUNCI: semua estimasi Phase 4 hanya memakai data s/d 31 Des 2019. Data 2020+ tidak disentuh sampai Phase 6.
+- Phase 4/7: **selesai** (21 Okt 2026; `src/leadlag.py`, `notebooks/04_lead_lag.ipynb`, `reports/phase4/`).
+  - Hanya data 2010-2019 (notebook memeriksa tanggal maksimum).
+  - Harga USD/IDR ber-`flag_stale_quote` dibuang di semua analisis harian; versi lengkap = sensitivitas.
+  - Temuan ada di README "Temuan".
+  - Hasil EIDO: Engle-Granger konstanta p = 0,10 (tidak terkointegrasi menurut aturan), sehingga yang dipakai
+    Δpremium. Versi tren/Johansen menunjukkan stasioner di sekitar tren (dividen EIDO); ini terbuka untuk
+    keputusan pemilik sebelum fitur Phase 6 ditetapkan.
+- Phase 5/7 (berikutnya), sesuai rencana yang dikunci:
+  - rolling correlation 52 minggu / 250 hari
+  - event study (jangkar & aturan di README; Okt 2026 hanya deskriptif)
+  - quantile regression Brent (berlabel)
+  - aset pelindung emas/DXY (deskriptif)

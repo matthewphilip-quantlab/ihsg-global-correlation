@@ -17,7 +17,7 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 | 1/7 | Setup, data ingestion, data quality | Selesai (run data asli 21 Okt 2026) |
 | 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Selesai (21 Okt 2026); USD/IDR lolos uji ulang → driver |
 | 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan" |
-| 4/7 | Lead-lag & efek zona waktu | Belum |
+| 4/7 | Lead-lag & efek zona waktu (CCF, regresi lead, Granger, premium EIDO; in-sample 2010–2019) | Selesai (21 Okt 2026); lihat "Temuan" |
 | 5/7 | Rolling correlation & regime krisis | Belum |
 | 6/7 | Uji sinyal out-of-sample | Belum |
 | 7/7 | Ringkasan portfolio | Belum |
@@ -233,6 +233,34 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
   - Uji Fisher z menyatakan keduanya signifikan, tetapi uji itu naif karena mengabaikan efek pemotongan dan autokorelasi.
   - Di 2010–2019 saja, asimetrinya lebih lemah (EEM CI −0,01 s/d +0,37).
 - **USD/IDR harian dan kuotasi basi:** membuang 42 return yang ditandai menggeser korelasi harian 2010–2019 dari −0,072 ke −0,091 (Pearson). Pengaruhnya kecil secara absolut, tetapi relatif besar untuk korelasi harian yang memang lemah. Ini masukan untuk keputusan sebelum Phase 4.
+
+**Phase 4, lead-lag & presedensi prediktif (21 Okt 2026; hanya data 2010–2019, kuotasi basi USD/IDR dibuang)**
+- **Pola jam perdagangan:**
+  - STI, KLCI, dan Hang Seng (sinkron) berkorelasi dengan IHSG di hari yang sama (+0,50 s/d +0,53) dan hampir nol di hari berikutnya.
+  - EEM, S&P 500, dan VIX puncaknya di **hari berikutnya** (k = +1: +0,38, +0,34, −0,27).
+  - Nifty, Tembaga, dan Brent puncaknya di hari yang sama. Nifty tutup hanya ±1 jam setelah IHSG, sedangkan futures komoditas diperdagangkan hampir 24 jam, termasuk sesi Asia.
+- **Regresi lead harian (HAC):**
+  - Satu faktor: S&P 500 +1% malam ini ↔ IHSG besok +0,37%; EEM +0,29%; VIX +10% ↔ −0,36%.
+  - Multi-faktor (R² 0,127): hanya **EEM** yang tetap kuat (+0,27%). S&P 500 tidak signifikan lagi setelah EEM masuk (VIF 4,7). Tembaga berbalik negatif (−0,07%), yang merupakan efek tumpang tindih.
+  - Momentum IHSG sendiri tidak menambah apa-apa.
+- **Granger (presedensi prediktif, BH 5%, lag BIC):**
+  - EEM, S&P 500, Nifty, VIX, Tembaga, dan Brent → IHSG. Ini diharapkan secara mekanis dari jam perdagangan, dan **bukan sebab-akibat**.
+  - Seri sinkron → IHSG: tidak ada.
+- **Rupiah tidak berperilaku seperti seri "after", walaupun IDR=X tutup di jam AS.**
+  - Korelasi rupiah(t) dengan IHSG(t+1) hanya −0,04 (tidak signifikan).
+  - Sebaliknya **IHSG mendahului rupiah**: korelasi IHSG(t−1) vs rupiah(t) −0,14, dan Granger IHSG → rupiah p_bh < 0,001. Konsisten dengan arus dana asing di saham yang dikonversi ke valas setelahnya.
+  - Membuang kuotasi basi menggeser korelasi hari yang sama dari −0,071 ke −0,091.
+- **EIDO (sinyal semalam):**
+  - Return EIDO malam ini saja menjelaskan R² 0,12 dari return IHSG besok. Δpremium (bagian pergerakan EIDO yang belum ada di close IHSG) menjelaskan R² 0,12.
+  - Keduanya **menambah informasi di atas S&P 500 dan EEM**: tambahan R² +0,014 (EIDO) dan +0,022 (Δpremium), uji Wald HAC p < 10⁻⁵. Δpremium +1% ↔ IHSG besok +0,14%, setelah S&P 500 dan EEM dikendalikan.
+- **Kointegrasi EIDO vs IHSG dalam USD bergantung spesifikasi:**
+  - Aturan utama, Engle–Granger dengan konstanta: p = 0,10, jadi **tidak terkointegrasi** pada α 5%. Sesuai rencana, yang dipakai adalah Δpremium, bukan z-score spread.
+  - Engle–Granger dengan tren (p < 10⁻⁵), Johansen, dan ADF premium mentah (p = 0,035) menunjukkan spread stasioner di sekitar tren. Tren itu wajar: harga EIDO di Yahoo sudah disesuaikan dividen, sedangkan IHSG indeks harga. Half-life spread versi tren sekitar 3,3 hari bursa (informasi saja).
+- **Gap pembukaan (EKSPLORATIF):**
+  - Data Open 2010–2019 hampir bersih (5 dari 2.436 hari dibuang).
+  - S&P 500, EEM, dan VIX malam ini berkorelasi ±0,44–0,46 dengan **gap pembukaan** IHSG besok, dan hanya ±0,13–0,25 dengan pergerakan intraday. Sebagian besar "reaksi besok" sudah terjadi di pembukaan.
+  - Korelasi intraday kemungkinan dibesar-besarkan oleh Open indeks yang memakai harga kemarin untuk saham yang belum diperdagangkan.
+  - Hasil ini tidak dipakai untuk kesimpulan utama.
 
 ## Keterbatasan data
 

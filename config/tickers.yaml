@@ -85,6 +85,14 @@ analysis:
     seed: 42
   # Uji ulang hipotesis screening "korelasi USD/IDR menguat dari 2010-2014 ke 2015-2019"
   usdidr_subperiods: [["2010-01-01", "2014-12-31"], ["2015-01-01", "2019-12-31"]]
+  # Phase 4: semua estimasi hanya s/d akhir project.screening_window (2019-12-31); data 2020+ tidak disentuh.
+  leadlag:
+    max_k: 5                           # cross-correlation IHSG(t+k) vs seri(t), k = -max_k..+max_k
+    granger_maxlags: 5
+    granger_ic: bic                    # mengikat (rencana dikunci); AIC dilaporkan sebagai pembanding
+    eido_id: EIDO
+    eido_compare_ids: [SPX, EEM]       # apakah EIDO membawa informasi tambahan di luar seri ini?
+    coint_alpha: 0.05
 
 # Seri turunan: target dalam USD = target / USD/IDR (yang sudah dibersihkan). id = <target_id><suffix>
 target_usd:

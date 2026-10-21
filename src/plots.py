@@ -182,3 +182,44 @@ def plot_asymmetric(asym: pd.DataFrame, names: dict, title: str):
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="lower right")
     fig.tight_layout()
     return fig
+
+
+def plot_ccf_heatmap(ccf: pd.DataFrame, names: dict, sessions: dict, title: str):
+    """Korelasi IHSG(t+k) vs seri(t) per lag: baris = seri (dikelompokkan per sesi), kolom = k."""
+    from matplotlib.colors import LinearSegmentedColormap
+    cmap = LinearSegmentedColormap.from_list("div", DIVERGING)
+    p = ccf.pivot(index="id", columns="k", values="r")
+    order = sorted(p.index, key=lambda i: (sessions.get(i, ""), -p.loc[i].abs().max()))
+    p = p.loc[order]
+    lim = max(0.1, float(np.nanmax(np.abs(p.to_numpy()))))
+    fig, ax = plt.subplots(figsize=(0.7 * p.shape[1] + 3.2, 0.48 * p.shape[0] + 1.6))
+    im = ax.imshow(p.to_numpy(), cmap=cmap, vmin=-lim, vmax=lim, aspect="auto")
+    ax.set_xticks(range(p.shape[1]), [f"{k:+d}" for k in p.columns], fontsize=9, color=INK_2)
+    ax.set_yticks(range(p.shape[0]), [f"{names.get(i, i)} ({sessions.get(i, '')})" for i in p.index],
+                  fontsize=9, color=INK_2)
+    for i in range(p.shape[0]):
+        for j in range(p.shape[1]):
+            v = p.iat[i, j]
+            ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=7,
+                    color="white" if abs(v) > 0.6 * lim else INK)
+    for side in ax.spines.values():
+        side.set_visible(False)
+    ax.set_xlabel("k (hari bursa bersama): IHSG(t+k) vs seri(t); k > 0 = seri mendahului IHSG", color=INK_2)
+    ax.set_title(title, loc="left", fontsize=12, color=INK, pad=10)
+    cb = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.02)
+    cb.ax.tick_params(labelsize=8, colors=INK_2)
+    cb.outline.set_visible(False)
+    fig.tight_layout()
+    return fig
+
+
+def plot_spread_z(z: pd.Series, title: str):
+    """z-score spread EIDO vs IHSG dalam USD, dengan pita +-2."""
+    fig, ax = plt.subplots(figsize=(10, 3.4))
+    ax.axhspan(-2, 2, color=GRID, alpha=0.5, linewidth=0, label="±2 simpangan baku")
+    ax.plot(z.index, z.values, color=SERIES[0], linewidth=1.2, label="z-score spread")
+    ax.axhline(0, color=INK_2, linewidth=1)
+    _style(ax, title, "z-score")
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="upper right")
+    fig.tight_layout()
+    return fig

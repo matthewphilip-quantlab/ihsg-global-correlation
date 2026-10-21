@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-10-21 23:34",
+  "in_sample": [
+    "2010-01-01",
+    "2019-12-31"
+  ],
+  "lead_multi_model": {
+    "n_minggu": 2187,
+    "hac_lags": 7,
+    "r2": 0.12657051925910612,
+    "adj_r2": 0.12376464208371074,
+    "mulai": "2010-01-05",
+    "akhir": "2019-12-27"
+  },
+  "lead_multi_plus_ihsg_t_model": {
+    "n_minggu": 2187,
+    "hac_lags": 7,
+    "r2": 0.12839861797954422,
+    "adj_r2": 0.12519714366541956,
+    "mulai": "2010-01-05",
+    "akhir": "2019-12-27"
+  },
+  "eido_kointegrasi": {
+    "n": 2249,
+    "mulai": "2010-05-10",
+    "akhir": "2019-12-27",
+    "eg_c_stat": -3.0445176375727807,
+    "eg_c_p": 0.09999899965620002,
+    "eg_ct_stat": -6.1501159934557545,
+    "eg_ct_p": 4.5051104952051335e-06,
+    "johansen_trace_r0": 82.39268953002457,
+    "johansen_crit95_r0": 15.4943,
+    "johansen_r0_ditolak": true,
+    "adf_premium_mentah_stat": -2.9962248594663654,
+    "adf_premium_mentah_p": 0.03524845809070454,
+    "alpha_kointegrasi": 3.852164053055136,
+    "beta_kointegrasi": 0.9497804996933544,
+    "half_life_hari_ct_info": 3.25493677130783,
+    "terkointegrasi": false
+  },
+  "kuotasi_basi_dibuang": 25
+}

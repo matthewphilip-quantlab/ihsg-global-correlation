@@ -36,3 +36,12 @@ def test_phase3_plots_render():
     assert plots.plot_corr_by_period(tab, {"A": "a"}, "tes", periods=("screening", "pasca")) is not None
     asym = pd.DataFrame({"id": ["A", "B"], "r_turun": [0.6, 0.2], "r_naik": [0.3, 0.1]})
     assert plots.plot_asymmetric(asym, {}, "tes") is not None
+
+
+def test_phase4_plots_render():
+    import numpy as np
+    import pandas as pd
+    ccf = pd.DataFrame({"id": ["A"] * 3 + ["B"] * 3, "k": [-1, 0, 1] * 2, "r": [0.0, 0.1, 0.3, 0.0, 0.5, 0.1]})
+    assert plots.plot_ccf_heatmap(ccf, {"A": "a"}, {"A": "after", "B": "sync"}, "tes") is not None
+    z = pd.Series(np.random.default_rng(0).normal(size=300), index=pd.bdate_range("2015-01-01", periods=300))
+    assert plots.plot_spread_z(z, "tes") is not None

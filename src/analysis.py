@@ -6,7 +6,7 @@ Isi modul:
 - hac_lags / factor_regression / vif_table / single_factor_betas / scenario_text : beta multifaktor (HAC)
 - asymmetric_table / expected_conditional_corr / stationary_bootstrap_indices : korelasi pasar turun vs naik
 - corr_matrix / subperiod_test / stale_sensitivity : matriks, uji ulang hipotesis lama, sensitivitas flag
-- phase3_summary / save_phase3_outputs : ringkasan dan file hasil
+- phase3_summary / save_tables : ringkasan dan file hasil
 """
 from __future__ import annotations
 
@@ -364,7 +364,8 @@ def phase3_summary(tab: pd.DataFrame, ranks: pd.DataFrame, coef: pd.DataFrame, m
     return "\n".join(lines)
 
 
-def save_phase3_outputs(out_dir: Path, tables: dict[str, pd.DataFrame], summary: dict) -> list[Path]:
+def save_tables(out_dir: Path, tables: dict[str, pd.DataFrame], summary: dict) -> list[Path]:
+    """Simpan tiap tabel sebagai CSV plus summary.json (dipakai Phase 3 dan seterusnya)."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = []

@@ -191,7 +191,7 @@ def test_rank_stability_and_outputs(tmp_path):
     tab = an.correlation_table(daily, weekly, "T", ["SYNC", "AFTER"], periods)
     ranks = an.rank_stability(tab)
     assert set(ranks.columns) == set(periods) and ranks.loc["SYNC", "screening"] in (1.0, 2.0)
-    paths = an.save_phase3_outputs(tmp_path, {"korelasi": tab, "rank": ranks}, {"catatan": "uji"})
+    paths = an.save_tables(tmp_path, {"korelasi": tab, "rank": ranks}, {"catatan": "uji"})
     assert all(p.exists() for p in paths) and (tmp_path / "summary.json").exists()
 
 
