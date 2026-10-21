@@ -15,7 +15,7 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 | Phase | Isi | Status |
 |---|---|---|
 | 1/7 | Setup, data ingestion, data quality | Selesai (run data asli 21 Okt 2026) |
-| 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD, gap & intraday) | Belum |
+| 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Belum |
 | 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD) | Belum |
 | 4/7 | Lead-lag & efek zona waktu | Belum |
 | 5/7 | Rolling correlation & regime krisis | Belum |
@@ -121,9 +121,25 @@ Tidak ada data harian gratis yang andal. Rencana ekspansi: WHC.AX sebagai proxy 
 ### 7. Modul gap pembukaan & intraday
 Return IHSG dipecah jadi gap pembukaan (close t → open t+1) dan intraday (open → close) **hanya** kalau data Open ^JKSE lolos empat cek: Open kosong ≤ 2%, Open di luar Low–High ≤ 1%, Open = Close kemarin ≤ 5%, dan OHLC datar ≤ 5%. Kalau hanya lolos sejak tahun tertentu (minimal 5 tahun), modul dipakai untuk periode itu saja. Selain itu fallback ke close-to-close, dan keterbatasannya ditulis di bawah.
 
+**Hasil penerapan (21 Okt 2026, disetujui pemilik project):** data Open ^JKSE gagal cek "Open = Close kemarin" (7,6%, batas 5%), dan periode lolos terpanjang hanya 2024–2026 (3 tahun, minimal 5). Karena itu **analisis utama memakai `close_to_close`**. Konsekuensinya, **bagian kedua pertanyaan riset 3 ("apakah sinyal masih tersisa setelah harga pembukaan IHSG") tidak bisa diuji dengan data Yahoo.** Bagian pertama (sinyal pasar sesi "after" di hari t terhadap return close-to-close IHSG di t+1) tetap diuji. Uji gap pembukaan hanya dilakukan sebagai sensitivitas **EKSPLORATIF** di Phase 4 (lihat "Rencana untuk phase berikutnya").
+
 ### 8. Kebijakan cleaning (Phase 2)
 - **FX:** dugaan bad tick dibuang otomatis dengan aturan di poin 4.
 - **Indeks, ETF, komoditas, sentimen:** gerakan besar hanya ditandai lalu diinspeksi manual. Gerakan ini bisa nyata, misalnya Oktober 2008. Pembuangan hanya dilakukan kalau dikonfirmasi salah, dan setiap pembuangan dicatat di sini.
+
+## Rencana untuk phase berikutnya
+
+Dicatat di akhir Phase 1 (21 Okt 2026) supaya tidak ditentukan setelah melihat hasil.
+
+- **Phase 4: sensitivitas gap pembukaan (EKSPLORATIF).**
+  - Buang hanya hari dengan Open = Close kemarin (toleransi relatif 1e-6, sama dengan cek Phase 1).
+  - Dari sisa harinya, hitung gap pembukaan log(Open t / Close t−1) dan intraday log(Close t / Open t), lalu ulangi uji lead-lag terhadap gap.
+  - Hasilnya **tidak dipakai untuk kesimpulan utama** dan selalu diberi label EKSPLORATIF.
+  - Catatan bias: hari yang dibuang terkonsentrasi di 2009, 2020, 2022, dan 2023 (bukan acak), sehingga sampel sisanya kurang mewakili periode krisis.
+- **Phase 4: harga basi USD/IDR hari Senin.** Cara menangani sisa harga basi di return harian (lihat "Keterbatasan data") diputuskan dan dikunci sebelum analisis harian dimulai.
+- **Phase 5: kandidat regime krisis 16 Okt 2026.** IHSG turun −11,57% dalam sehari (terburuk sejak krisis 1998 menurut pemberitaan; EIDO −16%). Episode ini masuk daftar kandidat regime krisis di samping 2008, 2013, 2015, 2018, 2020, dan 2022.
+  - Batas episode ditentukan di Phase 5 dengan aturan yang sama untuk semua episode.
+  - Data setelah episode masih sangat pendek saat dicatat, jadi kesimpulan apa pun bersifat awal.
 
 ## Keterbatasan data
 
@@ -140,7 +156,7 @@ Diperbarui setelah notebook 01 dijalankan dengan data asli (download 21 Okt 2026
   - Gap 26 hari (1–25 Agu 2008 tidak ada data).
   - Return nol 1,95% dari seluruh hari, terkonsentrasi di 2012–2014 (4,6–8,8% per tahun).
 - **Gerakan besar di indeks/ETF** yang ditandai dugaan bad tick (EEM 29 Sep 2008, 13 Nov 2008, 16 Mar 2020; HSI 27 Okt 2008; EIDO 12 Mar 2020) jatuh di episode krisis dan tampak nyata (pembalikan tajam di pasar yang panik). Sesuai poin 8, tidak dibuang tanpa konfirmasi.
-- **Crash IHSG 16 Okt 2026** (−11,57%, EIDO −16%) terlihat di dua sumber independen, jadi diperlakukan sebagai gerakan nyata. Close Yahoo 5.185,10 sedikit beda dari angka berita (5.199,96); bar hari terakhir bisa belum final saat download.
+- **Crash IHSG 16 Okt 2026** (−11,57%, EIDO −16%) terlihat di dua sumber independen, jadi diperlakukan sebagai gerakan nyata. Close Yahoo 5.185,10 sedikit beda dari angka berita (5.199,96); bar hari terakhir bisa belum final saat download. Dicatat sebagai kandidat regime krisis untuk Phase 5.
 - **Tanggal mulai:** Nifty 50 baru ada sejak 17 Sep 2007 dan Brent (BZ=F) sejak 30 Jul 2007. Keduanya tetap mencakup 2008. Brent juga punya gap 17 hari hingga 1 Mei 2009.
 - SET (Thailand) dan PSEi (Filipina) tidak tersedia di Yahoo untuk 2010–2019.
 - EIDO baru tersedia sejak Mei 2010, jadi tidak ikut analisis 2008.
@@ -148,4 +164,4 @@ Diperbarui setelah notebook 01 dijalankan dengan data asli (download 21 Okt 2026
 - **Kualitas data Open ^JKSE: tidak memadai → `return_mode = close_to_close`.**
   - Open = Close kemarin terjadi di 7,6% hari secara keseluruhan (batas 5%). Penyebabnya terkonsentrasi di 2009 (20%), 2020 (45%), 2022 (26%), dan 2023 (57%).
   - Tahun lain hampir bersih. Namun periode bersih terpanjang yang berakhir di tahun terakhir hanya 2024–2026 (3 tahun, minimal 5), jadi mode parsial juga tidak memenuhi syarat.
-  - Modul gap pembukaan & intraday tidak dipakai, dan pertanyaan riset 3 ("apakah sinyal masih tersisa setelah harga pembukaan") hanya bisa diuji secara close-to-close.
+  - Modul gap pembukaan & intraday tidak dipakai di analisis utama. Bagian kedua pertanyaan riset 3 ("apakah sinyal masih tersisa setelah harga pembukaan") **tidak bisa diuji dengan data Yahoo**; yang tersedia hanya uji sensitivitas eksploratif di Phase 4.

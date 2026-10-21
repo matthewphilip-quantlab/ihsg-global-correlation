@@ -27,13 +27,19 @@ Yang paling penting:
 - Hasil Brent di Phase 6 diberi label "dipilih dengan pengetahuan periode uji".
 
 ## Status & langkah berikutnya
-- Phase 1/7: kode selesai dan diuji dengan data mock. Langkah berikutnya adalah menjalankan
-  `notebooks/01_data_ingestion.ipynb` dengan data asli, membaca `reports/phase1/decisions.json`,
-  lalu memperbarui bagian "Keterbatasan data" di README.
+- Phase 1/7: **selesai** (run data asli 21 Okt 2026; hasil di `reports/phase1/`, catatan di README).
+  - Periode analisis mulai 1 Jan 2007 (tanpa fallback).
+  - **Amandemen 1** di README poin 4 (opsi B, k = 5): bad tick FX = |log return| > 5% yang dibalik ≥ 50%
+    dalam ≤ 5 hari bursa. Ambang, ukuran, dan batas 0.300 tidak berubah. |r| dengan aturan lama (k = 1)
+    dilaporkan sebagai sensitivitas yang tidak mengikat. Korelasi pasca-cleaning belum pernah dihitung.
+  - Modul Open: fallback **`close_to_close`** diterima untuk analisis utama. Bagian kedua pertanyaan riset 3
+    (sinyal setelah pembukaan) tidak bisa diuji dengan data Yahoo; hanya ada sensitivitas EKSPLORATIF di Phase 4.
+  - **Harus diputuskan sebelum Phase 4:** sisa harga basi USD/IDR (21 Okt 2013 dan 25 hari Senin bernilai
+    ±9.612,5 di Nov 2012–Jul 2013). Tidak memengaruhi uji ulang mingguan, tetapi membuat return harian palsu.
+  - Kandidat regime krisis untuk Phase 5: 16 Okt 2026 (IHSG −11,57%).
 - Phase 2/7 (berikutnya):
-  - Cleaning sesuai kebijakan di README.
-  - Uji ulang USD/IDR.
+  - Cleaning sesuai kebijakan di README (FX: aturan poin 4 + Amandemen 1).
+  - Uji ulang USD/IDR (laporkan juga versi aturan lama sebagai sensitivitas).
   - Hapus hari suspend.
-  - Hitung return harian dan mingguan, plus IHSG dalam USD.
-  - Hitung gap & intraday kalau `return_mode` mengizinkan.
+  - Hitung return harian dan mingguan (close-to-close), plus IHSG dalam USD.
   - Modul baru: `src/preprocess.py` + `notebooks/02_alignment_returns.ipynb`.
