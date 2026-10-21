@@ -1,0 +1,20 @@
+name: ihsg-corr
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas>=2.1
+  - numpy
+  - pyarrow          # cache parquet
+  - pyyaml           # baca config/tickers.yaml
+  - matplotlib
+  - plotly
+  - scipy
+  - statsmodels      # dipakai mulai Phase 4/6 (regresi, HAC)
+  - jupyter
+  - ipykernel
+  - pytest
+  - pip
+  - pip:
+      - yfinance>=0.2.50
+      - -e .         # install src/ sebagai package editable -> notebook cukup `from src import ...`

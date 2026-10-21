@@ -1,0 +1,120 @@
+# =============================================================================
+# Konfigurasi seri untuk project korelasi IHSG vs indeks global
+# Menambah / memindahkan seri cukup di file ini — kode tidak perlu dibongkar.
+#
+# Field per seri:
+#   id        : nama pendek (dipakai sebagai nama kolom)
+#   ticker    : simbol sumber data (Yahoo Finance kecuali `source` diisi lain)
+#   category  : index | etf | fx | sentiment | macro | commodity
+#   session   : target | sync  (tutup sebelum/bersamaan IHSG ~16:00 WIB)
+#                      | after (tutup setelah IHSG -> efeknya baru terlihat t+1)
+#   transform : log (log return) | diff (selisih level, untuk yield)
+#   source    : yfinance (default) | fred
+# =============================================================================
+
+project:
+  target_id: JKSE
+  start_date: "2007-01-01"       # ideal: mencakup Krisis Finansial Global 2008
+  fallback_start: "2010-01-01"   # dipakai kalau ^JKSE tidak lengkap sejak start_date
+  end_date: null                 # null = sampai data terbaru
+  # DIKUNCI. Periode ini hanya untuk screening / pemilihan seri.
+  # Data 2007-2009 dan 2020+ tidak boleh dipakai untuk memilih ulang seri.
+  screening_window: ["2010-01-01", "2019-12-31"]
+
+quality:
+  # |return harian| di atas ambang ini = "gerakan besar" (log return; yield = poin persen).
+  # Ambang per kategori supaya VIX tidak jadi false positive.
+  spike_threshold:
+    index: 0.12
+    etf: 0.12
+    fx: 0.05
+    sentiment: 0.60
+    macro: 0.40
+    commodity: 0.20
+  # Gerakan besar yang besoknya dibalik >= 50% ke arah sebaliknya = dugaan bad tick.
+  reversal_ratio: 0.5
+  min_obs_per_year: 200          # normal ~240-250 hari bursa/tahun
+  max_gap_days: 14               # jeda kalender antar observasi di atas ini = gap panjang
+  start_tolerance_days: 30
+  # Batas (% hari) sebelum modul gap pembukaan / intraday fallback ke close-to-close
+  open_checks:
+    missing_pct: 2.0             # Open kosong / <= 0
+    outside_range_pct: 1.0       # Open di luar rentang Low-High
+    open_eq_prev_close_pct: 5.0  # Open = Close kemarin (gap nol palsu)
+    flat_bar_pct: 5.0            # Open = High = Low = Close (OHLC diisi dari Close)
+  min_years_open_module: 5       # minimal panjang periode kalau modul hanya valid sebagian
+
+# Angka referensi IHSG 2008 untuk validasi data Yahoo (bukan untuk analisis).
+# Sumber: catatan pengguna; status FAIL berarti salah satu sisi (Yahoo atau referensi) perlu dicek.
+sanity_checks:
+  jkse_2008:
+    peak:   {date: "2008-01-09", close: 2830.0, tol_pct: 1.0}
+    trough: {date: "2008-10-28", close: 1111.0, tol_pct: 1.0}
+    daily_drops:
+      - {date: "2008-10-06", ret_pct: -10.03, tol_pp: 0.5}
+      - {date: "2008-10-08", ret_pct: -10.38, tol_pp: 0.5}
+    # BEI menghentikan perdagangan setelah 8 Okt 2008 dan buka lagi 13 Okt 2008.
+    # Hari ini harus tercatat sebagai hari libur, bukan data bolong.
+    suspended_days: ["2008-10-09", "2008-10-10"]
+
+# -----------------------------------------------------------------------------
+target:
+  - {id: JKSE, ticker: "^JKSE", name: IHSG, category: index, session: target, transform: log}
+
+# 10 seri Core (hasil screening 2010-2019 + override yang alasannya ada di README)
+core:
+  - {id: STI,    ticker: "^STI",   name: Straits Times,       category: index,     session: sync,  transform: log}
+  - {id: KLCI,   ticker: "^KLSE",  name: KLCI Malaysia,       category: index,     session: sync,  transform: log}
+  - {id: EEM,    ticker: "EEM",    name: iShares MSCI EM,     category: etf,       session: after, transform: log}
+  - {id: SPX,    ticker: "^GSPC",  name: S&P 500,             category: index,     session: after, transform: log}
+  - {id: NIFTY,  ticker: "^NSEI",  name: Nifty 50,            category: index,     session: after, transform: log}
+  - {id: HSI,    ticker: "^HSI",   name: Hang Seng,           category: index,     session: sync,  transform: log,
+     override: true, note: "Override: isolasi channel China; lihat README"}
+  - {id: VIX,    ticker: "^VIX",   name: VIX,                 category: sentiment, session: after, transform: log}
+  - {id: COPPER, ticker: "HG=F",   name: Tembaga,             category: commodity, session: after, transform: log}
+  - {id: BRENT,  ticker: "BZ=F",   name: Brent,               category: commodity, session: after, transform: log,
+     override: true, note: "Override: channel migas; hipotesis regime; lihat README"}
+  - {id: USDIDR, ticker: "IDR=X",  name: USD/IDR,             category: fx,        session: after, transform: log,
+     status: pending_phase2, note: "Driver hanya jika |corr mingguan| pasca-cleaning >= 0.300; aturan di README"}
+
+# Alat bantu analisis (bukan driver)
+tools:
+  - {id: EIDO, ticker: "EIDO", name: iShares MSCI Indonesia, category: etf, session: after, transform: log,
+     note: "IHSG dalam USD di jam AS; untuk analisis lead-lag & efek kurs. Data mulai Mei 2010"}
+
+# Ekspansi. Tidak didownload di Phase 1. Angka = hasil screening 2010-2019.
+nanti:
+  - {id: DXY,      ticker: "DX-Y.NYB",  name: Dollar Index,      category: fx,        session: after, transform: log,
+     reason: "Kalah head-to-head dari VIX sebagai wakil channel risk-off sesi AS (mingguan -0.11 vs -0.28, lead -0.16 vs -0.27)"}
+  - {id: NASDAQ,   ticker: "^IXIC",     name: Nasdaq Composite,  category: index,     session: after, transform: log,
+     reason: "Redundan dengan S&P 500 (korelasi 0.95)"}
+  - {id: N225,     ticker: "^N225",     name: Nikkei 225,        category: index,     session: sync,  transform: log,
+     reason: "Mingguan 0.298, di bawah batas 0.300; faktor Asia sudah terwakili STI/KLCI"}
+  - {id: KOSPI,    ticker: "^KS11",     name: KOSPI,             category: index,     session: sync,  transform: log,
+     reason: "Info tambahan setelah Core +0.10; kuota ekuitas penuh"}
+  - {id: TAIEX,    ticker: "^TWII",     name: TAIEX,             category: index,     session: sync,  transform: log,
+     reason: "Info tambahan setelah Core +0.09; kuota ekuitas penuh"}
+  - {id: ASX200,   ticker: "^AXJO",     name: ASX 200,           category: index,     session: sync,  transform: log,
+     reason: "Info tambahan setelah Core +0.03"}
+  - {id: STOXX50,  ticker: "^STOXX50E", name: Euro Stoxx 50,     category: index,     session: after, transform: log,
+     reason: "Info tambahan setelah Core -0.06"}
+  - {id: SHCOMP,   ticker: "000001.SS", name: Shanghai Composite, category: index,    session: sync,  transform: log,
+     reason: "Hubungan lemah (mingguan 0.18)"}
+  - {id: USDCNY,   ticker: "CNY=X",     name: USD/CNY,           category: fx,        session: after, transform: log,
+     reason: "Hubungan lemah (mingguan -0.11)"}
+  - {id: UST10Y,   ticker: "^TNX",      name: US Treasury 10Y,   category: macro,     session: after, transform: diff,
+     reason: "Hubungan lemah (mingguan 0.09, lead 0.07)"}
+  - {id: GOLD,     ticker: "GC=F",      name: Emas,              category: commodity, session: after, transform: log,
+     reason: "Hubungan lemah (mingguan 0.16)"}
+  - {id: COAL_WHC, ticker: "WHC.AX",    name: Whitehaven (proxy batubara), category: commodity, session: sync, transform: log,
+     reason: "Mingguan 0.18; 181 hari return nol (cek harga basi sebelum dipakai)"}
+  - {id: SET,      ticker: "^SET.BK",   name: SET Thailand,      category: index,     session: sync,  transform: log,
+     reason: "Data tidak tersedia di Yahoo 2010-2019; cek ticker alternatif"}
+  - {id: PSEI,     ticker: "PSEI.PS",   name: PSEi Filipina,     category: index,     session: sync,  transform: log,
+     reason: "Data tidak tersedia di Yahoo 2010-2019; cek ticker alternatif"}
+  - {id: NICKEL,   ticker: "PNICKUSDM", name: Nikel (IMF, bulanan), category: commodity, session: after, transform: log,
+     source: fred, reason: "Hanya bulanan; untuk analisis frekuensi bulanan"}
+  - {id: CPO,      ticker: "PPOILUSDM", name: CPO (IMF, bulanan),   category: commodity, session: after, transform: log,
+     source: fred, reason: "Hanya bulanan; kode seri diverifikasi ulang saat ekspansi"}
+  - {id: COAL_IMF, ticker: "PCOALAUUSDM", name: Batubara Australia (IMF, bulanan), category: commodity, session: after, transform: log,
+     source: fred, reason: "Hanya bulanan; kode seri diverifikasi ulang saat ekspansi"}

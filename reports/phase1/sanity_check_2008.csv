@@ -1,0 +1,7 @@
+cek,tanggal,referensi,data_yahoo,selisih,status,catatan
+Puncak 2008,2008-01-09,"2,830.00","2,830.15",+0.01%,PASS,"maks 2008 di data: 2,830.15 pada 09 Jan 2008"
+Dasar 2008,2008-10-28,"1,111.00","1,111.35",+0.03%,PASS,"min 2008 di data: 1,111.35 pada 28 Oct 2008"
+Penurunan harian,2008-10-06,-10.03%,-10.69%,-0.66 pp,FAIL,dibanding close 26 Sep 2008
+Penurunan harian,2008-10-08,-10.38%,-10.38%,+0.00 pp,PASS,dibanding close 07 Oct 2008
+Hari suspend BEI,2008-10-09,tidak ada perdagangan,tidak ada baris,-,PASS,sesuai: diperlakukan sebagai hari libur
+Hari suspend BEI,2008-10-10,tidak ada perdagangan,tidak ada baris,-,PASS,sesuai: diperlakukan sebagai hari libur
