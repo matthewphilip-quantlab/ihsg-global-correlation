@@ -98,10 +98,11 @@ def series_table(cfg: dict, groups: tuple[str, ...] = ("target", "core", "tools"
                 "override": bool(s.get("override", False)),
                 "status": s.get("status", ""),
                 "note": s.get("note", s.get("reason", "")),
+                "label": s.get("label", ""),
                 **{k: s[k] for k in REQUIRED},
             })
     cols = ["id", "ticker", "name", "group", "category", "session", "transform",
-            "source", "override", "status", "note"]
+            "source", "override", "status", "note", "label"]
     return pd.DataFrame(rows, columns=cols)
 
 

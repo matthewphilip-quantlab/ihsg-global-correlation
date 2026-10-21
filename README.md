@@ -92,6 +92,7 @@ Keputusan di bagian ini dibuat **sebelum** melihat hasil analisis berikutnya, su
 - **Analisis** dimulai 1 Jan 2007 (supaya GFC 2008 tercakup) kalau ^JKSE lengkap sejak saat itu. Kalau tidak, fallback ke 1 Jan 2010. Keputusan aktual ditulis otomatis di `reports/phase1/decisions.json`.
 - Data 2007–2009 dipakai untuk analisis regime (Phase 5), bukan untuk screening.
 - Hari suspend BEI (9–10 Okt 2008) diperlakukan sebagai hari libur, bukan data bolong.
+- **Baris basi target diperlakukan sebagai hari libur** (keputusan Phase 2, 21 Okt 2026): Close = Close kemarin **dan** Volume 0. Satu-satunya kasus di ^JKSE adalah 1 Des 2017 (libur Maulid Nabi). Close yang sama dengan hari sebelumnya tetapi volumenya ada (30 Jul 2020) tetap dihitung sebagai hari bursa. Implementasi: `holiday_rows` di `src/preprocess.py`.
 
 ### 2. Override Hang Seng
 EEM memuat bobot China, tetapi tercampur dengan negara EM lain. HSI dipakai untuk **mengisolasi channel China**, yang menyerap 24,02% ekspor nonmigas Indonesia (2025). Justru karena overlap dengan EEM itulah info tambahan HSI setelah EEM bernilai negatif (−0,10), padahal korelasi mingguannya sendiri 0,47. HSI juga dibutuhkan untuk analisis regime 2015 (crash pasar China dan devaluasi yuan).
@@ -167,6 +168,7 @@ Dikunci 21 Okt 2026, setelah Phase 2 dan **sebelum analisis Phase 3–7 dijalank
 - **Brent** selalu diberi label **"dipilih dengan pengetahuan periode uji"** (poin 3).
 - **Data:** return close-to-close dari `data/processed/` (Phase 2). Analisis harian memakai pasangan tanggal yang sama-sama buka. Analisis mingguan memakai W-FRI.
 - **Multiple testing:** tabel yang memuat banyak uji (banyak seri × lag) melaporkan p-value terkoreksi Benjamini–Hochberg (FDR 5%) di samping p-value mentah.
+- *Keputusan pemilik 21 Okt 2026:* aturan Benjamini–Hochberg dan istilah "asosiasi/presedensi" untuk hasil in-sample **diterima**.
 
 | Phase | Teknik | Pertanyaan | Rincian yang dikunci |
 |---|---|---|---|
@@ -177,13 +179,14 @@ Dikunci 21 Okt 2026, setelah Phase 2 dan **sebelum analisis Phase 3–7 dijalank
 | 4 | Granger | P3a | **Uji PRESEDENSI PREDIKTIF, bukan sebab-akibat.** VAR bivariat return harian 2010–2019, orde lag dipilih BIC (maks. 5), Wald robust. Dua arah: seri → IHSG dan IHSG → seri. |
 | 4 | Sinyal semalam premium/diskon EIDO | P3a | Premium = log EIDO − log IHSG dalam USD (EIDO tutup di sesi AS, setelah IHSG). Uji kointegrasi Engle–Granger dan Johansen di 2010–2019. Kalau terkointegrasi, deviasi dari hubungan jangka panjang dipakai sebagai prediktor return IHSG t+1 (regresi HAC). Kalau tidak, yang dipakai perubahan harian premium, dan hal itu ditulis eksplisit. Catatan: EIDO melacak MSCI Indonesia, bukan IHSG (basis risk), dan timing IDR=X (lihat Keterbatasan data). |
 | 5 | Rolling correlation | P2 | Utama: jendela 52 minggu (mingguan). Sekunder: 250 hari bursa (harian). |
-| 5 | Event study 7 krisis | P2 | **Satu aturan untuk semua episode:** jendela [−20, +60] hari bursa IHSG di sekitar tanggal jangkar. Jangkar diambil dari kalender kejadian, bukan dari pergerakan IHSG: 15 Sep 2008 (Lehman), 22 Mei 2013 (taper tantrum), 11 Agu 2015 (devaluasi yuan), 10 Agu 2018 (krisis lira Turki/penularan EM), 11 Mar 2020 (WHO: pandemi), 24 Feb 2022 (invasi Rusia ke Ukraina), 16 Okt 2026. Okt 2026 satu-satunya jangkar dari IHSG sendiri karena pemicunya belum diketahui, dan episodenya terpotong oleh akhir data. Pembanding "normal" = semua hari di luar ketujuh jendela, 2007–sekarang. |
+| 5 | Event study 7 krisis | P2 | **Satu aturan untuk semua episode:** jendela [−20, +60] hari bursa IHSG di sekitar tanggal jangkar. **Prinsip jangkar:** guncangan global yang menular ke pasar emerging, diambil dari kalender kejadian, bukan dari pergerakan IHSG. Jangkar: 15 Sep 2008 (Lehman), 22 Mei 2013 (taper tantrum), 11 Agu 2015 (devaluasi yuan), 10 Agu 2018 (krisis lira Turki/penularan EM; konsisten dengan 2013 dan 2015), 11 Mar 2020 (WHO: pandemi), 24 Feb 2022 (invasi Rusia ke Ukraina). **Sensitivitas berlabel:** 2018 dijalankan ulang dengan jangkar 5 Feb 2018 (lonjakan VIX). **Okt 2026** (jangkar 16 Okt 2026 diambil dari IHSG sendiri, dan episodenya terpotong oleh akhir data) hanya dilaporkan **deskriptif** dan **dikeluarkan** dari rata-rata atau perbandingan lintas episode. Pembanding "normal" = semua hari di luar ketujuh jendela, 2007–sekarang. |
 | 5 | Quantile regression (hipotesis Brent) | P2 | IHSG mingguan ~ Brent + Tembaga (proxy permintaan), τ ∈ {0,05; 0,10; 0,25; 0,50; 0,75; 0,90; 0,95}. Pelengkap: regresi HAC dengan interaksi Brent × 1[return Brent > persentil 90 periode 2010–2019], untuk menguji apakah tanda berbalik saat lonjakan. Berlabel Brent. |
 | 5 | Aset pelindung (emas, DXY) | P2 | **Deskriptif saja:** return dan korelasinya dengan IHSG di jendela krisis vs normal. Seri diambil dari blok `nanti:` tanpa dipindah ke Core. |
 | 6 | Baseline naif vs logistic regression (arah) | P3a | Target: arah return close-to-close IHSG t+1. Baseline: kelas mayoritas data latih dan persistensi (arah hari t). Logit L2 dengan fitur return hari t dari seri sesi "after"; set fitur dan C ditetapkan dari 2010–2019 (CV deret waktu di dalam data latih) dan dicatat sebelum OOS dijalankan. **Walk-forward:** expanding window sejak 2010, refit bulanan, OOS 2020-01-01 s/d akhir data. Metrik: akurasi, Brier, log loss, AUC. |
 | 6 | GARCH-X volatilitas dengan VIX | P3a | GARCH(1,1) return harian IHSG (`arch`) vs GARCH-X dengan perubahan log VIX hari t di persamaan varians. Karena `arch` tidak menyediakan regresor eksogen di persamaan varians, likelihood GARCH-X ditulis sendiri dan divalidasi: koefisien VIX = 0 harus mereproduksi `arch`. Loss: QLIKE dan MSE terhadap return kuadrat. Walk-forward sama seperti logit. |
-| 6 | Uji Diebold–Mariano | P3a | Logit vs baseline (Brier, log loss) dan GARCH-X vs GARCH (QLIKE), dengan koreksi sampel kecil Harvey–Leybourne–Newbold dan varians HAC. |
-| 7 | Ringkasan + target lain | P1–P3a | Pipeline Phase 1–6 dijalankan ulang dengan `project.target_id` = BBCA, BBRI, TLKM, ADRO, ASII (ANTM opsional). Core, aturan, dan periode **sama** (tidak ada seleksi ulang per saham); output di `reports/targets/<id>/`. Fungsinya cek heterogenitas, bukan seleksi baru. ADRO menunggu keputusan karena ada patahan data Nov–Des 2024 (lihat Keterbatasan data). |
+| 6 | HAR-X volatilitas (pembanding) | P3a | Pembanding yang mudah diverifikasi untuk GARCH-X: regresi OLS volatilitas realisasi IHSG terhadap lag volatilitas harian, mingguan (5 hari), dan bulanan (22 hari), plus perubahan log VIX hari t. Volatilitas realisasi diproksikan dengan \|return harian\| karena tidak ada data intraday. Versi tanpa VIX (HAR) menjadi baseline. Walk-forward dan loss sama seperti GARCH. |
+| 6 | Uji Diebold–Mariano | P3a | Logit vs baseline (Brier, log loss), GARCH-X vs GARCH, dan HAR-X vs HAR (QLIKE, MSE), dengan koreksi sampel kecil Harvey–Leybourne–Newbold dan varians HAC. |
+| 7 | Ringkasan + target lain | P1–P3a | Pipeline Phase 1–6 dijalankan ulang dengan `project.target_id` = BBCA, BBRI, TLKM, **PTBA**, ASII. Core, aturan, dan periode **sama** (tidak ada seleksi ulang per saham); output di `reports/targets/<id>/`. Fungsinya cek heterogenitas, bukan seleksi baru. *Keputusan pemilik 21 Okt 2026:* PTBA menggantikan ADRO (patahan Nov 2024), dan ANTM tetap di luar (data 2008–2010 kotor). Lihat Keterbatasan data. |
 
 **Phase 6, ditulis eksplisit:** tanpa data Open yang layak, **backtest trading tidak realistis**. Sinyal baru bisa dieksekusi di harga pembukaan, sedangkan gap pembukaan tidak bisa diukur. Karena itu hasil Phase 6 adalah **bukti statistik daya prediksi, bukan klaim return**.
 
@@ -228,14 +231,20 @@ Diperbarui setelah notebook 01 dijalankan dengan data asli (download 21 Okt 2026
 - **Crash IHSG 16 Okt 2026** (−11,57%, EIDO −16%) terlihat di dua sumber independen, jadi diperlakukan sebagai gerakan nyata. Close Yahoo 5.185,10 sedikit beda dari angka berita (5.199,96); bar hari terakhir bisa belum final saat download. Dicatat sebagai kandidat regime krisis untuk Phase 5.
 - **Tanggal mulai:** Nifty 50 baru ada sejak 17 Sep 2007 dan Brent (BZ=F) sejak 30 Jul 2007. Keduanya tetap mencakup 2008. Brent juga punya gap 17 hari hingga 1 Mei 2009.
 - **Target saham Phase 7 (dicek 21 Okt 2026, belum dianalisis):**
-  - **ADRO (ADRO.JK) mengalami patahan Nov–Des 2024.**
+  - **Keputusan pemilik (21 Okt 2026): ADRO diganti PTBA; ANTM tidak dipakai.** Catatan alasannya di bawah.
+  - **PTBA (PTBA.JK), pengganti ADRO:** data sejak 2 Jan 2007, sehingga GFC 2008 tercakup.
+    - Split 5:1 tanggal 14 Des 2017 bersih: Close Yahoo sudah disesuaikan, tidak ada lompatan.
+    - Dividen tunai: return adjusted Yahoo di ex-date hampir sama dengan total return sebenarnya (selisih ≤ 1,3 pp), **kecuali 26 Jun 2023**. Saat itu dividen Rp1.094 (29,6% harga) dan harga terkunci di batas bawah dua hari (3.700 → 3.150 → 2.680). Return adjusted Yahoo menjadi +20,9%, padahal total return +14,7% (selisih +6,2 pp), lalu −14,9% esok harinya.
+    - 13 Sep 2017 (−18,9%, volume ±15× normal) tampak sebagai gerakan nyata.
+    - Opsi untuk Phase 7 (belum diputuskan): hitung total return sendiri dari Close tanpa penyesuaian dan dividen, untuk hari ex-date besar.
+  - **ADRO (ADRO.JK), tidak dipakai: patahan Nov–Des 2024.**
     - Ticker Yahoo tetap ADRO.JK dan datanya tidak bolong. Nama perusahaan kini PT Alamtri Resources Indonesia Tbk.
     - Pada ex-date 28 Nov 2024 ada dividen spesial Rp1.358,18 per saham (±37% harga) terkait divestasi AADI (Adaro Andalan Indonesia, bisnis batubara termal, listing 5 Des 2024). Saham turun ke batas ARB dua hari berturut-turut (3.670 → 2.760 → 2.080).
     - Penyesuaian dividen Yahoo (auto-adjust) menghasilkan return **+17,7%** di 28 Nov (artefak; total return sebenarnya sekitar +12%), lalu −28,3% di 29 Nov.
     - Yang lebih penting: setelah Des 2024, ADRO secara ekonomi adalah perusahaan lain (tanpa AADI). Eksposurnya ke batubara termal berubah tepat di periode OOS.
     - ADRO juga baru listing 16 Jul 2008, sehingga periode analisisnya fallback ke 2010.
-    - **Pengganti belum diputuskan.** Kandidat: PTBA (data sejak 2007, batubara termal; split 2017; dividen besar ±30% harga di 2023 dengan pola pembalikan 26–27 Jun 2023 yang perlu dicek) atau ITMG (data sejak 18 Des 2007, jadi fallback 2010). Opsi lain: tetap ADRO dengan sampel dipotong 26 Nov 2024.
-  - **ANTM (opsional):** data Yahoo 2008–2010 penuh lonjakan ±100% yang langsung berbalik, plus −87% (log) pada 24 Sep 2012. Kebijakan poin 8 hanya menandai gerakan besar non-FX, jadi data ini akan tetap kotor kecuali ada amandemen.
+    - Alternatif lain yang sempat dipertimbangkan: ITMG (data sejak 18 Des 2007, fallback 2010), atau ADRO dengan sampel dipotong 26 Nov 2024.
+  - **ANTM, tidak dipakai:** data Yahoo 2008–2010 penuh lonjakan ±100% yang langsung berbalik, plus −87% (log) pada 24 Sep 2012. Kebijakan poin 8 hanya menandai gerakan besar non-FX, jadi data ini akan tetap kotor.
   - Saham big cap punya 10–13% hari dengan return tepat nol (tick size, hari sepi), jauh di atas indeks (<0,1%).
 - SET (Thailand) dan PSEi (Filipina) tidak tersedia di Yahoo untuk 2010–2019.
 - EIDO baru tersedia sejak Mei 2010, jadi tidak ikut analisis 2008.

@@ -17,6 +17,17 @@ def test_overrides_and_usdidr_status(cfg):
     assert core["USDIDR"]["status"] == "driver"            # hasil uji ulang Phase 2
 
 
+def test_brent_carries_test_period_label(cfg):
+    t = series_table(cfg).set_index("id")
+    assert t.loc["BRENT", "label"] == "dipilih dengan pengetahuan periode uji"
+    assert (t.drop(index="BRENT")["label"] == "").all()
+
+
+def test_phase7_targets_decided(cfg):
+    ids = [s["id"] for s in cfg["targets"]]
+    assert ids == ["JKSE", "BBCA", "BBRI", "TLKM", "PTBA", "ASII"]          # ADRO & ANTM di luar
+
+
 def test_phase2_rules_in_config(cfg):
     assert cfg["quality"]["fx_cleaning"] == {"max_reversal_days": 5, "max_reversal_days_old": 1}
     assert cfg["usdidr_retest"]["min_abs_corr"] == 0.300

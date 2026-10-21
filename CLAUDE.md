@@ -52,8 +52,15 @@ Yang paling penting:
     `flag_stale_quote`), `weekly_returns` (W-FRI, termasuk JKSE_USD), `target_usd`, `stale_quote_flags`.
   - Masih terbuka sebelum Phase 4: cara menangani 25 kuotasi basi USD/IDR yang ditandai (42 return harian).
 - Rencana teknik Phase 3-7 dikunci (21 Okt 2026), target dibuat configurable, dan `arch` ditambahkan ke environment.
-  - Masih terbuka sebelum Phase 7: pengganti ADRO karena patahan Nov-Des 2024 (kandidat PTBA/ITMG atau
-    sampel dipotong), dan apakah ANTM dipakai (data 2008-2010 kotor).
+  - Keputusan pemilik (21 Okt 2026, sebelum Phase 3):
+    - Benjamini-Hochberg dan istilah "asosiasi/presedensi" untuk hasil in-sample diterima.
+    - Event study: prinsip jangkar = guncangan global yang menular ke pasar emerging; 2018 = 10 Agu 2018, dengan
+      sensitivitas berlabel 5 Feb 2018. Okt 2026 hanya deskriptif dan DIKELUARKAN dari rata-rata atau perbandingan
+      lintas episode.
+    - Target Phase 7: BBCA, BBRI, TLKM, PTBA, ASII. ADRO keluar (patahan Nov 2024), ANTM keluar (data 2008-2010
+      kotor). Dividen PTBA 26 Jun 2023 membuat return adjusted Yahoo +6,2 pp di atas total return.
+    - Phase 6: HAR-X (OLS |return| ~ lag 1/5/22 hari + perubahan log VIX) sebagai pembanding GARCH-X.
+  - Label Brent ada di kolom `label` pada `series_table` (dari tickers.yaml); bawa kolom ini ke setiap tabel hasil.
 - Phase 3/7 (berikutnya), sesuai rencana yang dikunci:
   - korelasi statis (Pearson/Spearman, harian vs mingguan, IDR vs USD)
   - regresi faktor mingguan HAC

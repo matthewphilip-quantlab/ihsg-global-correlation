@@ -87,15 +87,13 @@ sanity_checks:
 # Katalog target. Yang aktif = project.target_id; sisanya tidak didownload.
 targets:
   - {id: JKSE, ticker: "^JKSE",   name: IHSG,                category: index, session: target, transform: log}
-  # Phase 7: 5 big cap (ANTM opsional). Lihat README "Rencana teknik per phase".
+  # Phase 7: 5 big cap (keputusan 21 Okt 2026: PTBA menggantikan ADRO; ADRO & ANTM di luar, alasan di README).
   - {id: BBCA, ticker: "BBCA.JK", name: Bank Central Asia,   category: stock, session: target, transform: log}
   - {id: BBRI, ticker: "BBRI.JK", name: Bank Rakyat Indonesia, category: stock, session: target, transform: log}
   - {id: TLKM, ticker: "TLKM.JK", name: Telkom Indonesia,    category: stock, session: target, transform: log}
-  - {id: ADRO, ticker: "ADRO.JK", name: Alamtri Resources (d/h Adaro Energy), category: stock, session: target, transform: log,
-     note: "Patahan Nov-Des 2024: dividen spesial Rp1.358 terkait divestasi AADI, ganti nama jadi Alamtri; pengganti belum diputuskan"}
+  - {id: PTBA, ticker: "PTBA.JK", name: Bukit Asam,          category: stock, session: target, transform: log,
+     note: "Pengganti ADRO. Dividen 26 Jun 2023 (+-30% harga) membuat return adjusted Yahoo +6,2 pp di atas total return"}
   - {id: ASII, ticker: "ASII.JK", name: Astra International, category: stock, session: target, transform: log}
-  - {id: ANTM, ticker: "ANTM.JK", name: Aneka Tambang,       category: stock, session: target, transform: log,
-     note: "Opsional; data Yahoo 2008-2010 penuh lonjakan +-100% yang langsung berbalik"}
 
 # 10 seri Core (hasil screening 2010-2019 + override yang alasannya ada di README)
 core:
@@ -109,7 +107,8 @@ core:
   - {id: VIX,    ticker: "^VIX",   name: VIX,                 category: sentiment, session: after, transform: log}
   - {id: COPPER, ticker: "HG=F",   name: Tembaga,             category: commodity, session: after, transform: log}
   - {id: BRENT,  ticker: "BZ=F",   name: Brent,               category: commodity, session: after, transform: log,
-     override: true, note: "Override: channel migas; hipotesis regime; lihat README"}
+     override: true, note: "Override: channel migas; hipotesis regime; lihat README",
+     label: "dipilih dengan pengetahuan periode uji"}
   - {id: USDIDR, ticker: "IDR=X",  name: USD/IDR,             category: fx,        session: after, transform: log,
      status: driver, note: "Driver: lolos uji ulang Phase 2 (|r| mingguan 2010-2019 pasca-cleaning Amandemen 1 = 0.334 >= 0.300; aturan lama 0.189); lihat README poin 4"}
 
