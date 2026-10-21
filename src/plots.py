@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import numpy as np
 import pandas as pd
 
 from .quality import OPEN_LABELS, OPEN_METRICS
@@ -105,5 +106,79 @@ def plot_idr_vs_usd(target: pd.Series, target_usd: pd.Series, title: str, name: 
     ax.plot(df.index, df["usd"], color=SERIES[1], linewidth=1.5, label=f"{name} dalam USD")
     _style(ax, title, f"Indeks ({df.index[0]:%b %Y} = 100)")
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
+    fig.tight_layout()
+    return fig
+
+
+# Diverging biru <-> merah dengan titik tengah abu-abu netral (korelasi -1..+1)
+DIVERGING = ["#1c5cab", "#86b6ef", "#f0efec", "#f19a99", "#b83a39"]
+
+
+def plot_corr_heatmap(matrix: pd.DataFrame, title: str):
+    """Matriks korelasi dengan skala diverging tetap -1..+1 dan nilai tertulis di tiap sel."""
+    from matplotlib.colors import LinearSegmentedColormap
+    cmap = LinearSegmentedColormap.from_list("div", DIVERGING)
+    n = len(matrix)
+    fig, ax = plt.subplots(figsize=(0.62 * n + 2.4, 0.55 * n + 1.4))
+    im = ax.imshow(matrix.to_numpy(), cmap=cmap, vmin=-1, vmax=1)
+    ax.set_xticks(range(n), matrix.columns, rotation=45, ha="right", fontsize=9, color=INK_2)
+    ax.set_yticks(range(n), matrix.index, fontsize=9, color=INK_2)
+    for i in range(n):
+        for j in range(n):
+            v = matrix.iat[i, j]
+            ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=7.5,
+                    color="white" if abs(v) > 0.6 else INK)
+    for side in ax.spines.values():
+        side.set_visible(False)
+    ax.set_title(title, loc="left", fontsize=12, color=INK, pad=10)
+    cb = fig.colorbar(im, ax=ax, fraction=0.04, pad=0.02)
+    cb.ax.tick_params(labelsize=8, colors=INK_2)
+    cb.outline.set_visible(False)
+    fig.tight_layout()
+    return fig
+
+
+def plot_corr_by_period(tab: pd.DataFrame, names: dict, title: str, periods=("screening", "pasca", "penuh")):
+    """Korelasi per seri dengan CI 95%, satu warna per periode (urutan warna tetap)."""
+    t = tab.set_index(["id", "periode"])
+    order = (tab[tab["periode"] == periods[0]].assign(a=lambda d: d["r"].abs()).sort_values("a")["id"].tolist())
+    fig, ax = plt.subplots(figsize=(9, 0.5 * len(order) + 1.4))
+    offsets = np.linspace(-0.22, 0.22, len(periods))
+    for color, per, off in zip(SERIES, periods, offsets):
+        for k, sid in enumerate(order):
+            if (sid, per) not in t.index:
+                continue
+            row = t.loc[(sid, per)]
+            ax.plot([row["ci_lo"], row["ci_hi"]], [k + off] * 2, color=color, linewidth=2, solid_capstyle="round")
+            ax.scatter(row["r"], k + off, s=40, color=color, edgecolor="white", linewidth=1.5, zorder=3,
+                       label=per if k == 0 else None)
+    ax.axvline(0, color=INK_2, linewidth=1)
+    ax.set_yticks(range(len(order)), [names.get(i, i) for i in order])
+    _style(ax, title, "")
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Korelasi Pearson dengan IHSG (CI 95%)", color=INK_2)
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="lower right")
+    fig.tight_layout()
+    return fig
+
+
+def plot_asymmetric(asym: pd.DataFrame, names: dict, title: str):
+    """Korelasi di minggu pengkondisi turun vs naik, satu baris per seri."""
+    a = asym.sort_values("r_turun")
+    fig, ax = plt.subplots(figsize=(9, 0.5 * len(a) + 1.4))
+    for k, r in enumerate(a.itertuples()):
+        ax.plot([r.r_naik, r.r_turun], [k, k], color=GRID, linewidth=2, zorder=1)
+    ax.scatter(a["r_turun"], range(len(a)), s=48, color=SERIES[1], edgecolor="white", linewidth=1.5, zorder=3,
+               label="Minggu turun")
+    ax.scatter(a["r_naik"], range(len(a)), s=48, color=SERIES[0], edgecolor="white", linewidth=1.5, zorder=3,
+               label="Minggu naik")
+    ax.axvline(0, color=INK_2, linewidth=1)
+    ax.set_yticks(range(len(a)), [names.get(i, i) for i in a["id"]])
+    _style(ax, title, "")
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Korelasi Pearson dengan IHSG", color=INK_2)
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="lower right")
     fig.tight_layout()
     return fig

@@ -24,3 +24,15 @@ def test_phase2_plots_render():
     assert plots.plot_fx_cleaning(raw, clean, "tes") is not None
     jkse = random_walk(start="2013-01-01", end="2013-12-31", level=4300, seed=5)
     assert plots.plot_idr_vs_usd(jkse, jkse / raw, "tes") is not None
+
+
+def test_phase3_plots_render():
+    import numpy as np
+    import pandas as pd
+    m = pd.DataFrame(np.eye(3) * 0.5 + 0.5, index=list("ABC"), columns=list("ABC"))
+    assert plots.plot_corr_heatmap(m, "tes") is not None
+    tab = pd.DataFrame({"id": ["A", "B"] * 2, "periode": ["screening"] * 2 + ["pasca"] * 2,
+                        "r": [0.5, -0.2, 0.4, -0.1], "ci_lo": [0.4, -0.3, 0.3, -0.2], "ci_hi": [0.6, -0.1, 0.5, 0.0]})
+    assert plots.plot_corr_by_period(tab, {"A": "a"}, "tes", periods=("screening", "pasca")) is not None
+    asym = pd.DataFrame({"id": ["A", "B"], "r_turun": [0.6, 0.2], "r_naik": [0.3, 0.1]})
+    assert plots.plot_asymmetric(asym, {}, "tes") is not None

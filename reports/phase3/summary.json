@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-10-21 23:12",
+  "target_id": "JKSE",
+  "periode": {
+    "penuh": [
+      "2007-01-01",
+      null
+    ],
+    "screening": [
+      "2010-01-01",
+      "2019-12-31"
+    ],
+    "pasca": [
+      "2020-01-01",
+      null
+    ]
+  },
+  "model_regresi": {
+    "penuh": {
+      "n_minggu": 968,
+      "hac_lags": 6,
+      "r2": 0.42154738298764405,
+      "adj_r2": 0.4155029460282673,
+      "mulai": "2007-09-28",
+      "akhir": "2026-10-23"
+    },
+    "screening": {
+      "n_minggu": 508,
+      "hac_lags": 5,
+      "r2": 0.4287415725984104,
+      "adj_r2": 0.41724743925028995,
+      "mulai": "2010-01-01",
+      "akhir": "2019-12-27"
+    },
+    "pasca": {
+      "n_minggu": 350,
+      "hac_lags": 5,
+      "r2": 0.36458595957227946,
+      "adj_r2": 0.34584218256851196,
+      "mulai": "2020-01-03",
+      "akhir": "2026-10-23"
+    }
+  },
+  "skenario_beta_screening": {
+    "STI": "Straits Times naik 1% → IHSG rata-rata +0.30% di minggu yang sama (CI 95% +0.12% s/d +0.48%), seri Core lain dikendalikan",
+    "KLCI": "KLCI Malaysia naik 1% → IHSG rata-rata +0.43% di minggu yang sama (CI 95% +0.24% s/d +0.62%), seri Core lain dikendalikan",
+    "EEM": "iShares MSCI EM naik 1% → IHSG rata-rata +0.28% di minggu yang sama (CI 95% +0.15% s/d +0.41%), seri Core lain dikendalikan",
+    "SPX": "S&P 500 naik 1% → IHSG rata-rata -0.16% di minggu yang sama (CI 95% -0.30% s/d -0.03%), seri Core lain dikendalikan",
+    "NIFTY": "Nifty 50 naik 1% → IHSG rata-rata +0.15% di minggu yang sama (CI 95% +0.06% s/d +0.24%), seri Core lain dikendalikan",
+    "HSI": "Hang Seng naik 1% → IHSG rata-rata -0.12% di minggu yang sama (CI 95% -0.24% s/d -0.00%), seri Core lain dikendalikan",
+    "VIX": "VIX naik 10% → IHSG rata-rata +0.03% di minggu yang sama (CI 95% -0.14% s/d +0.20%), seri Core lain dikendalikan",
+    "COPPER": "Tembaga naik 1% → IHSG rata-rata -0.00% di minggu yang sama (CI 95% -0.07% s/d +0.06%), seri Core lain dikendalikan",
+    "BRENT": "Brent naik 1% → IHSG rata-rata -0.01% di minggu yang sama (CI 95% -0.05% s/d +0.03%), seri Core lain dikendalikan",
+    "USDIDR": "rupiah melemah 1% (USD/IDR naik 1%) → IHSG rata-rata -0.23% di minggu yang sama (CI 95% -0.42% s/d -0.04%), seri Core lain dikendalikan"
+  },
+  "usdidr_subperiode": [
+    {
+      "varian": "sebelum cleaning",
+      "r_awal": -0.11127384690577057,
+      "n_awal": 255,
+      "r_akhir": -0.4137362006082504,
+      "n_akhir": 253,
+      "selisih": -0.3024623537024798,
+      "z_fisher": 3.6786408163873117,
+      "p_fisher": 0.00023448021702891886
+    },
+    {
+      "varian": "aturan lama (<= 1 hari)",
+      "r_awal": -0.11127384690577057,
+      "n_awal": 255,
+      "r_akhir": -0.4137362006082504,
+      "n_akhir": 253,
+      "selisih": -0.3024623537024798,
+      "z_fisher": 3.6786408163873117,
+      "p_fisher": 0.00023448021702891886
+    },
+    {
+      "varian": "bersih (Amandemen 1)",
+      "r_awal": -0.28771623677380287,
+      "n_awal": 255,
+      "r_akhir": -0.4137362006082504,
+      "n_akhir": 253,
+      "selisih": -0.12601996383444752,
+      "z_fisher": 1.6135773638330884,
+      "p_fisher": 0.10661913004745531
+    }
+  ]
+}

@@ -61,8 +61,15 @@ Yang paling penting:
       kotor). Dividen PTBA 26 Jun 2023 membuat return adjusted Yahoo +6,2 pp di atas total return.
     - Phase 6: HAR-X (OLS |return| ~ lag 1/5/22 hari + perubahan log VIX) sebagai pembanding GARCH-X.
   - Label Brent ada di kolom `label` pada `series_table` (dari tickers.yaml); bawa kolom ini ke setiap tabel hasil.
-- Phase 3/7 (berikutnya), sesuai rencana yang dikunci:
-  - korelasi statis (Pearson/Spearman, harian vs mingguan, IDR vs USD)
-  - regresi faktor mingguan HAC
-  - korelasi asimetris dengan koreksi bias kondisional
-  - Baca panel dari `data/processed/` dan `reports/phase2/decisions.json`.
+- Phase 3/7: **selesai** (21 Okt 2026; `src/analysis.py`, `notebooks/03_static_correlation.ipynb`, `reports/phase3/`).
+  - Temuan ringkas ada di README bagian "Temuan".
+  - Hipotesis screening "USD/IDR menguat 2010-2014 -> 2015-2019" dicabut sebagai artefak bad tick 2013
+    (data bersih p = 0,11).
+  - Parameter Phase 3 ada di `analysis:` pada tickers.yaml.
+- Phase 4/7 (berikutnya), sesuai rencana yang dikunci:
+  - cross-correlation lead-lag
+  - Granger (presedensi prediktif)
+  - premium/diskon EIDO + kointegrasi
+  - sensitivitas gap pembukaan EKSPLORATIF
+  - **Putuskan dulu** penanganan 25 kuotasi basi USD/IDR (`flag_stale_quote`) sebelum analisis harian.
+    Data Phase 3: membuangnya menggeser r harian 2010-2019 dari -0,072 ke -0,091.

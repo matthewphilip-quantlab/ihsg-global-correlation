@@ -1,0 +1,11 @@
+id,name,session,harian,mingguan,rasio_harian_mingguan
+USDIDR,USD/IDR,after,-0.0715,-0.3384,0.2113
+VIX,VIX,after,-0.131,-0.2797,0.4682
+BRENT,Brent,after,0.1178,0.2034,0.579
+COPPER,Tembaga,after,0.1679,0.2776,0.6047
+SPX,S&P 500,after,0.1593,0.3316,0.4803
+NIFTY,Nifty 50,after,0.4226,0.463,0.9127
+EEM,iShares MSCI EM,after,0.2657,0.5273,0.5039
+HSI,Hang Seng,sync,0.5174,0.4711,1.0982
+KLCI,KLCI Malaysia,sync,0.5004,0.5244,0.9542
+STI,Straits Times,sync,0.5314,0.5279,1.0066

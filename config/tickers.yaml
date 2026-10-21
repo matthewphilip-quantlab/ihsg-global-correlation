@@ -67,6 +67,25 @@ usdidr_retest:
   target_id: JKSE                # keputusan dikunci terhadap IHSG; target lain tidak menjalankan ulang uji ini
   min_abs_corr: 0.300            # |r| dipotong 3 desimal (tanpa pembulatan ke atas)
 
+# Phase 3: parameter analisis deskriptif (rencana dikunci di README "Rencana teknik per phase")
+analysis:
+  post_screening_start: "2020-01-01"   # periode pasca-screening = tanggal ini s/d akhir data
+  vif_threshold: 5.0                   # VIF di atas ini -> laporkan beta regresi satu faktor sebagai pembanding
+  scenario:                            # cara membaca beta: guncangan seri -> perubahan IHSG (log return mingguan)
+    default_shock_pct: 1
+    by_id:
+      USDIDR: {shock_pct: 1, phrase: "rupiah melemah 1% (USD/IDR naik 1%)"}
+      VIX:    {shock_pct: 10, phrase: "VIX naik 10%"}
+  asymmetric:
+    condition_ids: [SPX, EEM]          # "minggu global turun vs naik" = tanda return mingguan seri ini
+    exceedance_q: 0.10                 # minggu ekstrem: <= persentil 10 vs >= persentil 90
+    n_boot: 1000                       # stationary block bootstrap untuk selisih
+    mean_block_weeks: 4
+    n_mc: 200000                       # simulasi normal multivariat untuk korelasi kondisional yang diharapkan
+    seed: 42
+  # Uji ulang hipotesis screening "korelasi USD/IDR menguat dari 2010-2014 ke 2015-2019"
+  usdidr_subperiods: [["2010-01-01", "2014-12-31"], ["2015-01-01", "2019-12-31"]]
+
 # Seri turunan: target dalam USD = target / USD/IDR (yang sudah dibersihkan). id = <target_id><suffix>
 target_usd:
   suffix: _USD

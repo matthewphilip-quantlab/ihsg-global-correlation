@@ -16,7 +16,7 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 |---|---|---|
 | 1/7 | Setup, data ingestion, data quality | Selesai (run data asli 21 Okt 2026) |
 | 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Selesai (21 Okt 2026); USD/IDR lolos uji ulang → driver |
-| 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD) | Belum |
+| 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan" |
 | 4/7 | Lead-lag & efek zona waktu | Belum |
 | 5/7 | Rolling correlation & regime krisis | Belum |
 | 6/7 | Uji sinyal out-of-sample | Belum |
@@ -135,6 +135,11 @@ Screening awal menunjukkan korelasi mingguan −0,19, tetapi data IDR=X memiliki
 - **Catatan kejujuran:** |r| = 0,334 hanya 0,034 di atas batas, kurang dari satu standard error korelasi mingguan (±0,044 untuk ~520 minggu). Statusnya sah menurut aturan yang dikunci, tetapi hubungan USD/IDR–IHSG di level mingguan sebaiknya dibaca sebagai "moderat di ambang batas", bukan kuat.
 - **Tanda negatif sesuai teori:** rupiah melemah (USD/IDR naik) bersamaan dengan IHSG turun.
 
+**Hipotesis screening dicabut (Phase 3, 21 Okt 2026).** Screening dengan data mentah memberi kesan "korelasi USD/IDR–IHSG menguat dari 2010–2014 ke 2015–2019" (−0,11 → −0,41; uji Fisher z p < 0,001). Hipotesis itu **dicabut sebagai artefak bad tick 2013**:
+- Dengan data bersih (Amandemen 1), korelasinya −0,29 → −0,41. Selisih −0,13 tidak signifikan (p = 0,11).
+- Bad tick Okt–Des 2013 jatuh di paruh pertama dan memperlemah korelasi di paruh itu. Sekitar 60% "penguatan" yang terlihat berasal dari bad tick tersebut.
+- Detail: `reports/phase3/usdidr_subperiode.csv`.
+
 ### 5. Dollar Index → Nanti
 Kalah head-to-head dari VIX sebagai wakil channel risk-off / risk-appetite sesi AS: korelasi mingguan −0,11 vs −0,28, lead −0,16 vs −0,27. Tetap ada di blok `nanti:` (tidak dihapus).
 
@@ -205,6 +210,26 @@ Dicatat di akhir Phase 1 (21 Okt 2026) supaya tidak ditentukan setelah melihat h
 - **Phase 5: kandidat regime krisis 16 Okt 2026.** IHSG turun −11,57% dalam sehari (terburuk sejak krisis 1998 menurut pemberitaan; EIDO −16%). Episode ini masuk daftar kandidat regime krisis di samping 2008, 2013, 2015, 2018, 2020, dan 2022.
   - Batas episode ditentukan di Phase 5 dengan aturan yang sama untuk semua episode.
   - Data setelah episode masih sangat pendek saat dicatat, jadi kesimpulan apa pun bersifat awal.
+
+## Temuan
+
+Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan bukan sebab-akibat**. Detail ada di `notebooks/03_static_correlation.ipynb` dan `reports/phase3/`.
+
+**Phase 3, korelasi statis (21 Okt 2026)**
+- **Seri paling kuat (mingguan 2010–2019):** Straits Times +0,53, EEM +0,53, KLCI +0,52, Hang Seng +0,47, Nifty +0,46. Urutan antar-periode cukup stabil (Kendall tau 0,82 screening vs penuh), tetapi berubah setelah 2020 (tau 0,56): korelasi Hang Seng turun dari +0,47 ke +0,29, sedangkan S&P 500 naik dari +0,33 ke +0,43.
+- **Harian vs mingguan:** untuk seri sesi "after", korelasi harian di hari yang sama hanya sekitar setengah korelasi mingguan (median rasio 0,50; USD/IDR 0,21). Untuk seri "sync" rasionya sekitar 1,0. Reaksi IHSG terhadap pasar yang tutup belakangan baru muncul keesokan harinya, dan itu diuji di Phase 4.
+- **Regresi faktor mingguan (HAC, 2010–2019):** R² = 0,43 (pasca-2020 0,36).
+  - Dengan seri Core lain dikendalikan: STI +1% → IHSG +0,30%; KLCI +1% → +0,43%; EEM +1% → +0,28%; Nifty +1% → +0,15%; **rupiah melemah 1% → IHSG −0,23%** (CI −0,42% s/d −0,04%).
+  - Beta satu faktor rupiah −0,71: sebagian besar asosiasi rupiah tumpang tindih dengan faktor ekuitas regional.
+  - Beta S&P 500 berbalik negatif (−0,16) walaupun beta satu faktornya +0,37. Ini efek tumpang tindih dengan EEM (VIF 4,2 dan 5,3), bukan efek terpisah.
+  - VIX, Tembaga, dan Brent tidak signifikan setelah faktor ekuitas dikendalikan. Brent berlabel "dipilih dengan pengetahuan periode uji".
+- **IHSG dalam USD vs rupiah:** korelasi dengan seri global praktis sama di 2010–2019 (rata-rata |r| +0,01), dan sedikit lebih kuat dalam USD setelah 2020 (+0,05).
+- **Asimetri:**
+  - Korelasi IHSG lebih tinggi di minggu global turun. IHSG–EEM: +0,52 saat EEM turun vs +0,30 saat naik. IHSG–S&P 500: +0,39 vs +0,22.
+  - Memotong sampel saja sudah menurunkan korelasi, jadi angka itu dibandingkan dengan yang diharapkan dari distribusi normal. Asimetri berlebih: EEM +0,23 (CI bootstrap +0,07 s/d +0,37, meyakinkan) dan S&P 500 +0,18 (CI −0,01 s/d +0,36, belum meyakinkan).
+  - Uji Fisher z menyatakan keduanya signifikan, tetapi uji itu naif karena mengabaikan efek pemotongan dan autokorelasi.
+  - Di 2010–2019 saja, asimetrinya lebih lemah (EEM CI −0,01 s/d +0,37).
+- **USD/IDR harian dan kuotasi basi:** membuang 42 return yang ditandai menggeser korelasi harian 2010–2019 dari −0,072 ke −0,091 (Pearson). Pengaruhnya kecil secara absolut, tetapi relatif besar untuk korelasi harian yang memang lemah. Ini masukan untuk keputusan sebelum Phase 4.
 
 ## Keterbatasan data
 
