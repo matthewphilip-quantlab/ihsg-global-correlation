@@ -5,7 +5,7 @@
 # Field per seri:
 #   id        : nama pendek (dipakai sebagai nama kolom)
 #   ticker    : simbol sumber data (Yahoo Finance kecuali `source` diisi lain)
-#   category  : index | etf | fx | sentiment | macro | commodity
+#   category  : index | etf | fx | sentiment | macro | commodity | stock
 #   session   : target | sync  (tutup sebelum/bersamaan IHSG ~16:00 WIB)
 #                      | after (tutup setelah IHSG -> efeknya baru terlihat t+1)
 #   transform : log (log return) | diff (selisih level, untuk yield)
@@ -13,9 +13,16 @@
 # =============================================================================
 
 project:
+  # Target aktif. Ganti ke id lain dari blok `targets` (mis. BBCA) untuk menjalankan ulang pipeline
+  # tanpa mengubah kode. Output target selain primary_target ditulis ke reports/targets/<id>/ dan
+  # data/processed/targets/<id>/ supaya hasil IHSG tidak tertimpa.
   target_id: JKSE
+  primary_target: JKSE
   start_date: "2007-01-01"       # ideal: mencakup Krisis Finansial Global 2008
-  fallback_start: "2010-01-01"   # dipakai kalau ^JKSE tidak lengkap sejak start_date
+  fallback_start: "2010-01-01"   # dipakai kalau target tidak lengkap sejak start_date
+  # BEI menghentikan perdagangan setelah 8 Okt 2008 dan buka lagi 13 Okt 2008.
+  # Berlaku untuk semua target yang listing di BEI: diperlakukan sebagai hari libur, bukan data bolong.
+  suspended_days: ["2008-10-09", "2008-10-10"]
   end_date: null                 # null = sampai data terbaru
   # DIKUNCI. Periode ini hanya untuk screening / pemilihan seri.
   # Data 2007-2009 dan 2020+ tidak boleh dipakai untuk memilih ulang seri.
@@ -31,6 +38,7 @@ quality:
     sentiment: 0.60
     macro: 0.40
     commodity: 0.20
+    stock: 0.25                  # saham BEI (Phase 7); hanya untuk menandai, tidak ada yang dibuang
   # Gerakan besar yang besoknya dibalik >= 50% ke arah sebaliknya = dugaan bad tick.
   reversal_ratio: 0.5
   min_obs_per_year: 200          # normal ~240-250 hari bursa/tahun
@@ -56,29 +64,38 @@ quality:
 # Uji ulang USD/IDR (README poin 4). Periode = project.screening_window, metode = scripts/screening.py.
 usdidr_retest:
   id: USDIDR
+  target_id: JKSE                # keputusan dikunci terhadap IHSG; target lain tidak menjalankan ulang uji ini
   min_abs_corr: 0.300            # |r| dipotong 3 desimal (tanpa pembulatan ke atas)
 
-# Seri turunan
-jkse_usd:
-  id: JKSE_USD                   # IHSG dalam USD = ^JKSE / USD/IDR (USD/IDR yang sudah dibersihkan)
+# Seri turunan: target dalam USD = target / USD/IDR (yang sudah dibersihkan). id = <target_id><suffix>
+target_usd:
+  suffix: _USD
   fx_id: USDIDR
 
-# Angka referensi IHSG 2008 untuk validasi data Yahoo (bukan untuk analisis).
+# Angka referensi 2008 per target untuk validasi data Yahoo (bukan untuk analisis).
+# Key = id target; target tanpa entri -> sanity check dilewati. Hari suspend diambil dari project.suspended_days.
 # Sumber: catatan pengguna; status FAIL berarti salah satu sisi (Yahoo atau referensi) perlu dicek.
 sanity_checks:
-  jkse_2008:
+  JKSE:
     peak:   {date: "2008-01-09", close: 2830.0, tol_pct: 1.0}
     trough: {date: "2008-10-28", close: 1111.0, tol_pct: 1.0}
     daily_drops:
       - {date: "2008-10-06", ret_pct: -10.03, tol_pp: 0.5}
       - {date: "2008-10-08", ret_pct: -10.38, tol_pp: 0.5}
-    # BEI menghentikan perdagangan setelah 8 Okt 2008 dan buka lagi 13 Okt 2008.
-    # Hari ini harus tercatat sebagai hari libur, bukan data bolong.
-    suspended_days: ["2008-10-09", "2008-10-10"]
 
 # -----------------------------------------------------------------------------
-target:
-  - {id: JKSE, ticker: "^JKSE", name: IHSG, category: index, session: target, transform: log}
+# Katalog target. Yang aktif = project.target_id; sisanya tidak didownload.
+targets:
+  - {id: JKSE, ticker: "^JKSE",   name: IHSG,                category: index, session: target, transform: log}
+  # Phase 7: 5 big cap (ANTM opsional). Lihat README "Rencana teknik per phase".
+  - {id: BBCA, ticker: "BBCA.JK", name: Bank Central Asia,   category: stock, session: target, transform: log}
+  - {id: BBRI, ticker: "BBRI.JK", name: Bank Rakyat Indonesia, category: stock, session: target, transform: log}
+  - {id: TLKM, ticker: "TLKM.JK", name: Telkom Indonesia,    category: stock, session: target, transform: log}
+  - {id: ADRO, ticker: "ADRO.JK", name: Alamtri Resources (d/h Adaro Energy), category: stock, session: target, transform: log,
+     note: "Patahan Nov-Des 2024: dividen spesial Rp1.358 terkait divestasi AADI, ganti nama jadi Alamtri; pengganti belum diputuskan"}
+  - {id: ASII, ticker: "ASII.JK", name: Astra International, category: stock, session: target, transform: log}
+  - {id: ANTM, ticker: "ANTM.JK", name: Aneka Tambang,       category: stock, session: target, transform: log,
+     note: "Opsional; data Yahoo 2008-2010 penuh lonjakan +-100% yang langsung berbalik"}
 
 # 10 seri Core (hasil screening 2010-2019 + override yang alasannya ada di README)
 core:

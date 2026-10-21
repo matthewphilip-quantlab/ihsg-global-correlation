@@ -2,7 +2,8 @@ import copy
 
 import pytest
 
-from src.config import series_table, validate_config
+from src.config import (load_config, output_dir, sanity_ref, series_table, target_ticker, target_usd_id,
+                        validate_config)
 
 
 def test_core_has_ten_series_with_agreed_members(cfg):
@@ -47,4 +48,32 @@ def test_unknown_category_rejected(cfg):
     bad = copy.deepcopy(cfg)
     bad["core"][0]["category"] = "crypto"
     with pytest.raises(ValueError, match="category"):
+        validate_config(bad)
+
+
+# ---- target configurable -------------------------------------------------------------
+def test_default_target_is_jkse(cfg):
+    assert cfg["target"][0]["ticker"] == "^JKSE" and target_ticker(cfg) == "^JKSE"
+    assert output_dir(cfg, "reports", "phase1").parts[-2:] == ("reports", "phase1")
+    assert sanity_ref(cfg)["suspended_days"] == cfg["project"]["suspended_days"]
+
+
+def test_target_switch_without_code_change():
+    cfg = load_config(target_id="BBCA")
+    t = series_table(cfg)
+    assert t.loc[t["group"] == "target", "ticker"].tolist() == ["BBCA.JK"]
+    assert len(t) == 1 + 10 + 1                             # Core & tools tidak berubah
+    assert output_dir(cfg, "reports", "phase1").parts[-4:] == ("reports", "targets", "BBCA", "phase1")
+    assert sanity_ref(cfg) is None and target_usd_id(cfg) == "BBCA_USD"
+
+
+def test_unknown_target_rejected():
+    with pytest.raises(ValueError, match="targets"):
+        load_config(target_id="XXXX")
+
+
+def test_target_catalog_must_be_target_session(cfg):
+    bad = copy.deepcopy(cfg)
+    bad["targets"][1]["session"] = "sync"
+    with pytest.raises(ValueError, match="session 'target'"):
         validate_config(bad)

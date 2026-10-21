@@ -14,7 +14,11 @@ data science, mengerti Python/pandas, dan memakai Anaconda + Jupyter Notebook di
 
 ## Aturan kode
 - Semua logika di `src/`; notebook (`notebooks/0X_*.ipynb`, berurutan) hanya memanggil fungsi dan menampilkan hasil.
-- Seri ditambah/dipindah hanya lewat `config/tickers.yaml`. Jangan hardcode ticker di kode.
+- Seri ditambah/dipindah hanya lewat `config/tickers.yaml`. Jangan hardcode ticker atau id seri di kode/notebook.
+- Target dipilih lewat `project.target_id` dari katalog `targets`. Kode memakai `cfg["target"]`, `sanity_ref`,
+  `target_usd_id`, dan `output_dir` (`src/config.py`), bukan nama JKSE. Target selain `primary_target` menulis ke
+  `reports/targets/<id>/` dan `data/processed/targets/<id>/`. `tests/test_pipeline.py` menjaga Phase 1-2 tetap jalan
+  dengan target sintetis.
 - `data/` tidak di-commit. Output kecil (CSV/JSON) masuk `reports/` dan di-commit. Output notebook (grafik) di-commit.
 - Setiap fungsi baru di `src/` diberi tes di `tests/` dengan data sintetis (tanpa internet). Jalankan `pytest` sebelum commit.
 - Return dihitung dari log price di tanggal yang sama-sama buka. Tidak boleh forward-fill harga sebelum menghitung return.
@@ -25,6 +29,10 @@ Yang paling penting:
 - Screening window 2010-2019 dikunci; jangan memilih ulang seri dengan data di luar periode itu.
 - Aturan uji ulang USD/IDR: |r| mingguan pasca-cleaning >= 0.300, cleaning hanya membuang bad tick.
 - Hasil Brent di Phase 6 diberi label "dipilih dengan pengetahuan periode uji".
+- Teknik Phase 3-7 dikunci di README bagian "Rencana teknik per phase (dikunci)": jangan menambah, mengganti, atau
+  menyetel ulang teknik/parameter di sana tanpa amandemen bertanggal yang disetujui pemilik. Granger ditulis sebagai
+  presedensi prediktif, bukan sebab-akibat. Phase 6 adalah bukti statistik, bukan klaim return (tanpa data Open
+  yang layak, backtest trading tidak realistis).
 
 ## Status & langkah berikutnya
 - Phase 1/7: **selesai** (run data asli 21 Okt 2026; hasil di `reports/phase1/`, catatan di README).
@@ -41,7 +49,13 @@ Yang paling penting:
   - Uji ulang USD/IDR: |r| = 0.334 (Amandemen 1, mengikat), sehingga USD/IDR menjadi **driver**. Aturan lama memberi 0.189
     (tidak lolos). Status keduanya berbeda, dan itu sudah ditulis eksplisit di README poin 4.
   - Panel di `data/processed/` (tidak di-commit): `prices_clean`, `daily_pair_returns` (dengan `gap_days` dan
-    `flag_stale_quote`), `weekly_returns` (W-FRI, termasuk JKSE_USD), `jkse_usd`, `stale_quote_flags`.
+    `flag_stale_quote`), `weekly_returns` (W-FRI, termasuk JKSE_USD), `target_usd`, `stale_quote_flags`.
   - Masih terbuka sebelum Phase 4: cara menangani 25 kuotasi basi USD/IDR yang ditandai (42 return harian).
-- Phase 3/7 (berikutnya): korelasi statis, yaitu harian vs mingguan, Pearson vs Spearman, dan IHSG dalam IDR vs USD.
-  Baca panel dari `data/processed/` dan `reports/phase2/decisions.json`.
+- Rencana teknik Phase 3-7 dikunci (21 Okt 2026), target dibuat configurable, dan `arch` ditambahkan ke environment.
+  - Masih terbuka sebelum Phase 7: pengganti ADRO karena patahan Nov-Des 2024 (kandidat PTBA/ITMG atau
+    sampel dipotong), dan apakah ANTM dipakai (data 2008-2010 kotor).
+- Phase 3/7 (berikutnya), sesuai rencana yang dikunci:
+  - korelasi statis (Pearson/Spearman, harian vs mingguan, IDR vs USD)
+  - regresi faktor mingguan HAC
+  - korelasi asimetris dengan koreksi bias kondisional
+  - Baca panel dari `data/processed/` dan `reports/phase2/decisions.json`.

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21 22:24",
+  "generated_at": "2026-10-21 22:55",
   "usdidr_retest": {
     "status": "driver",
     "passed": true,
@@ -10,6 +10,7 @@
     "reason": "|r| mingguan 2010-2019 pasca-cleaning (Amandemen 1 (<= 5 hari, MENGIKAT)) = 0.334 (r = -0.3340, 507 minggu), batas 0.300: LOLOS -> driver (Core)",
     "note": "PERHATIAN: status berbeda dengan aturan lama (0.189 -> tidak lolos)."
   },
+  "target_id": "JKSE",
   "analysis_start": "2007-01-01",
   "return_mode": "close_to_close",
   "removed_per_series": {

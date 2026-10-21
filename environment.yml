@@ -10,7 +10,8 @@ dependencies:
   - matplotlib
   - plotly
   - scipy
-  - statsmodels      # dipakai mulai Phase 4/6 (regresi, HAC)
+  - statsmodels      # Phase 3-6: regresi HAC, Granger, kointegrasi, quantile regression, logit
+  - arch-py          # Phase 6: GARCH (paket conda-forge untuk `import arch`)
   - jupyter
   - ipykernel
   - pytest

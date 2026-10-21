@@ -56,7 +56,7 @@ def test_persistent_move_and_weak_reversal_not_removed():
 # ---- hari libur & kuotasi basi -----------------------------------------------------------
 def test_holiday_rows_suspend_and_stale(cfg):
     df = make_ohlc(random_walk(start="2008-09-01", end="2008-12-31", level=1500))
-    susp = cfg["sanity_checks"]["jkse_2008"]["suspended_days"]
+    susp = cfg["project"]["suspended_days"]
     stale_day, real_flat = df.index[5], df.index[10]
     df.loc[stale_day, "Close"] = df["Close"].iloc[4]
     df.loc[stale_day, "Volume"] = 0                      # libur diisi harga kemarin
@@ -139,10 +139,10 @@ def test_weekly_returns_use_last_available_price():
     assert np.isclose(w.loc["2020-01-24", "T"], np.log(114 / 108))
 
 
-def test_jkse_in_usd_common_dates():
+def test_target_in_usd_common_dates():
     idx = pd.bdate_range("2020-01-01", periods=3)
     close = pd.DataFrame({"J": [6000, np.nan, 6300.0], "F": [15000, 15500, 14000.0]}, index=idx)
-    usd = pp.jkse_in_usd(close, "J", "F", "J_USD")
+    usd = pp.target_in_usd(close, "J", "F", "J_USD")
     assert list(usd.index) == [idx[0], idx[2]] and np.isclose(usd.iloc[0], 0.4)
 
 

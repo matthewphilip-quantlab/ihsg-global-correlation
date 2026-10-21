@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src import quality as q
+from src.config import sanity_ref
 from tests.conftest import make_ohlc, random_walk
 
 
@@ -65,13 +66,13 @@ def _jkse_2008_like(ref):
 
 
 def test_sanity_check_passes_on_matching_data(cfg):
-    ref = cfg["sanity_checks"]["jkse_2008"]
+    ref = sanity_ref(cfg)
     res = q.sanity_check_2008(_jkse_2008_like(ref), ref)
     assert (res["status"] == "PASS").all(), res
 
 
 def test_sanity_check_warns_on_stale_suspended_row(cfg):
-    ref = cfg["sanity_checks"]["jkse_2008"]
+    ref = sanity_ref(cfg)
     s = _jkse_2008_like(ref)
     d = pd.Timestamp(ref["suspended_days"][0])
     s.loc[d] = s.loc[:d].iloc[-1]                  # Yahoo mengisi hari suspend dengan harga kemarin
@@ -81,7 +82,7 @@ def test_sanity_check_warns_on_stale_suspended_row(cfg):
 
 
 def test_sanity_check_fails_on_wrong_level(cfg):
-    ref = cfg["sanity_checks"]["jkse_2008"]
+    ref = sanity_ref(cfg)
     s = _jkse_2008_like(ref)
     s.loc[pd.Timestamp(ref["peak"]["date"])] *= 1.05
     res = q.sanity_check_2008(s, ref)

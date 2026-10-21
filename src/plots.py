@@ -49,7 +49,7 @@ def plot_jkse_2008(jkse_close: pd.Series, ref: dict, start: str = "2007-01-01", 
     return fig
 
 
-def plot_open_quality(per_year: pd.DataFrame, thresholds: dict):
+def plot_open_quality(per_year: pd.DataFrame, thresholds: dict, label: str = "^JKSE"):
     """Persentase hari bermasalah per tahun untuk tiap cek Open, dengan garis batasnya."""
     fig, axes = plt.subplots(1, len(OPEN_METRICS), figsize=(12, 3.4), sharex=True)
     for ax, (metric, key), color in zip(axes, OPEN_METRICS.items(), SERIES):
@@ -59,7 +59,7 @@ def plot_open_quality(per_year: pd.DataFrame, thresholds: dict):
                 va="bottom", fontsize=8, color=INK_2)
         _style(ax, OPEN_LABELS[metric], "% hari" if metric == "missing" else "")
         ax.tick_params(axis="x", rotation=90)
-    fig.suptitle("Kualitas data Open ^JKSE per tahun", x=0.01, ha="left", fontsize=12, color=INK)
+    fig.suptitle(f"Kualitas data Open {label} per tahun", x=0.01, ha="left", fontsize=12, color=INK)
     fig.tight_layout()
     return fig
 
@@ -96,13 +96,13 @@ def plot_fx_cleaning(raw: pd.Series, clean: pd.Series, title: str, start: str | 
     return fig
 
 
-def plot_idr_vs_usd(jkse: pd.Series, jkse_usd: pd.Series, title: str):
-    """IHSG dalam rupiah vs dalam USD, keduanya diindeks = 100 di tanggal bersama pertama."""
-    df = pd.concat([jkse.rename("idr"), jkse_usd.rename("usd")], axis=1).dropna()
+def plot_idr_vs_usd(target: pd.Series, target_usd: pd.Series, title: str, name: str = "IHSG"):
+    """Target dalam rupiah vs dalam USD, keduanya diindeks = 100 di tanggal bersama pertama."""
+    df = pd.concat([target.rename("idr"), target_usd.rename("usd")], axis=1).dropna()
     df = df / df.iloc[0] * 100
     fig, ax = plt.subplots(figsize=(10, 3.8))
-    ax.plot(df.index, df["idr"], color=SERIES[0], linewidth=1.5, label="IHSG (rupiah)")
-    ax.plot(df.index, df["usd"], color=SERIES[1], linewidth=1.5, label="IHSG dalam USD")
+    ax.plot(df.index, df["idr"], color=SERIES[0], linewidth=1.5, label=f"{name} (rupiah)")
+    ax.plot(df.index, df["usd"], color=SERIES[1], linewidth=1.5, label=f"{name} dalam USD")
     _style(ax, title, f"Indeks ({df.index[0]:%b %Y} = 100)")
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
     fig.tight_layout()

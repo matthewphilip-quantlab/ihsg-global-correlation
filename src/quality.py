@@ -3,9 +3,9 @@
 Isi modul:
 - series_quality / quality_report : tanggal mulai, kelengkapan per tahun, gap, return nol,
                                     gerakan besar dan dugaan bad tick (ambang per kategori)
-- decide_start                    : apakah ^JKSE cukup lengkap sejak 2007, atau fallback ke 2010
+- decide_start                    : apakah target cukup lengkap sejak 2007, atau fallback ke 2010
 - sanity_check_2008               : bandingkan data Yahoo dengan angka referensi IHSG 2008
-- open_quality / open_module_decision : apakah data Open ^JKSE layak untuk analisis gap & intraday
+- open_quality / open_module_decision : apakah data Open target layak untuk analisis gap & intraday
 - phase1_summary / save_phase1_outputs : ringkasan otomatis dan file hasil untuk Phase 2
 """
 from __future__ import annotations
@@ -131,13 +131,13 @@ def moves_table(prices: dict[str, pd.DataFrame], table: pd.DataFrame, qcfg: dict
 
 
 # ---- Keputusan periode -----------------------------------------------------------
-def decide_start(jkse_close: pd.Series, preferred: str, fallback: str,
-                 min_obs_per_year: int, tol_days: int = 30) -> dict:
-    """Pakai `preferred` (2007) hanya kalau ^JKSE mulai tepat waktu DAN tahun-tahun
+def decide_start(target_close: pd.Series, preferred: str, fallback: str,
+                 min_obs_per_year: int, tol_days: int = 30, label: str = "target") -> dict:
+    """Pakai `preferred` (2007) hanya kalau target mulai tepat waktu DAN tahun-tahun
     sebelum `fallback` lengkap. Selain itu fallback ke 2010 (atau tanggal mulai data)."""
-    close = jkse_close.dropna()
+    close = target_close.dropna()
     if close.empty:
-        raise ValueError("Data ^JKSE kosong; cek koneksi lalu jalankan ulang download.")
+        raise ValueError(f"Data {label} kosong; cek koneksi lalu jalankan ulang download.")
     preferred_ts, fallback_ts = pd.Timestamp(preferred), pd.Timestamp(fallback)
     tol = pd.Timedelta(days=tol_days)
     first = close.index[0]
@@ -147,7 +147,7 @@ def decide_start(jkse_close: pd.Series, preferred: str, fallback: str,
 
     if first <= preferred_ts + tol and not thin:
         start_used, used_fallback = preferred_ts, False
-        reason = (f"^JKSE tersedia sejak {first:%d %b %Y} dan {early_years[0]}-{early_years[-1]} lengkap "
+        reason = (f"{label} tersedia sejak {first:%d %b %Y} dan {early_years[0]}-{early_years[-1]} lengkap "
                   f"-> analisis mulai {preferred_ts:%d %b %Y} (GFC 2008 tercakup)")
     else:
         why = f"data baru mulai {first:%d %b %Y}" if first > preferred_ts + tol else \
@@ -266,8 +266,8 @@ def open_module_decision(overall: dict, per_year: pd.DataFrame, thresholds: dict
 
 
 # ---- Ringkasan & output -------------------------------------------------------------
-def phase1_summary(quality: pd.DataFrame, start_decision: dict, sanity: pd.DataFrame,
-                   open_decision: dict, moves: pd.DataFrame) -> str:
+def phase1_summary(quality: pd.DataFrame, start_decision: dict, sanity: pd.DataFrame | None,
+                   open_decision: dict, moves: pd.DataFrame, label: str = "^JKSE") -> str:
     """Ringkasan insight Phase 1 dalam bahasa sederhana (markdown), dibangun dari hasil."""
     lines = ["### Ringkasan Phase 1", ""]
     lines.append(f"- **Periode analisis:** {start_decision['reason']}.")
@@ -285,12 +285,15 @@ def phase1_summary(quality: pd.DataFrame, start_decision: dict, sanity: pd.DataF
     else:
         lines.append("- **Dugaan bad tick:** tidak ada.")
 
-    n_pass = int((sanity["status"] == "PASS").sum())
-    lines.append(f"- **Sanity check 2008:** {n_pass} dari {len(sanity)} cek PASS.")
-    for _, s in sanity[sanity["status"] != "PASS"].iterrows():
-        lines.append(f"  - {s['cek']} {s['tanggal']}: {s['status']} — {s['catatan']}")
+    if sanity is None or sanity.empty:
+        lines.append("- **Sanity check 2008:** dilewati (tidak ada angka referensi untuk target ini).")
+    else:
+        n_pass = int((sanity["status"] == "PASS").sum())
+        lines.append(f"- **Sanity check 2008:** {n_pass} dari {len(sanity)} cek PASS.")
+        for _, s in sanity[sanity["status"] != "PASS"].iterrows():
+            lines.append(f"  - {s['cek']} {s['tanggal']}: {s['status']} — {s['catatan']}")
 
-    lines.append(f"- **Data Open ^JKSE:** {open_decision['reason']}.")
+    lines.append(f"- **Data Open {label}:** {open_decision['reason']}.")
     return "\n".join(lines)
 
 
@@ -304,8 +307,9 @@ def _json_default(obj):
     return str(obj)
 
 
-def save_phase1_outputs(out_dir: Path, quality: pd.DataFrame, moves: pd.DataFrame, sanity: pd.DataFrame,
-                        open_per_year: pd.DataFrame, start_decision: dict, open_decision: dict) -> list[Path]:
+def save_phase1_outputs(out_dir: Path, quality: pd.DataFrame, moves: pd.DataFrame, sanity: pd.DataFrame | None,
+                        open_per_year: pd.DataFrame, start_decision: dict, open_decision: dict,
+                        target_id: str) -> list[Path]:
     """Simpan hasil Phase 1 ke reports/phase1/. decisions.json dibaca oleh Phase 2."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -318,12 +322,13 @@ def save_phase1_outputs(out_dir: Path, quality: pd.DataFrame, moves: pd.DataFram
     }
     quality.to_csv(paths["quality"], index=False)
     moves.to_csv(paths["moves"], index=False)
-    sanity.to_csv(paths["sanity"], index=False)
+    (sanity if sanity is not None else pd.DataFrame()).to_csv(paths["sanity"], index=False)
     open_per_year.round(3).to_csv(paths["open"])
     bad = moves[moves["bad_tick"].astype(bool)].groupby("id").size()
     decisions = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "jkse_first_available": start_decision["first_available"],
+        "target_id": target_id,
+        "target_first_available": start_decision["first_available"],
         "analysis_start": start_decision["start_used"],
         "used_fallback": start_decision["used_fallback"],
         "start_reason": start_decision["reason"],

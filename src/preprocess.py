@@ -4,8 +4,8 @@ Isi modul:
 - holiday_rows / fx_bad_ticks / stale_quote_flags : aturan cleaning (README poin 1, 4 + Amandemen 1, 8)
 - clean_prices                                    : panel close bersih + log semua penghapusan
 - pair_daily_returns / weekly_returns             : return di tanggal yang sama-sama buka (tanpa forward-fill)
-- jkse_in_usd                                     : IHSG dalam USD = ^JKSE / USD/IDR bersih
-- usdidr_retest / retest_decision                 : uji ulang USD/IDR dengan aturan yang dikunci
+- target_in_usd                                   : target dalam USD = target / USD/IDR bersih
+- usdidr_retest / retest_decision / retest_skipped : uji ulang USD/IDR dengan aturan yang dikunci
 - phase2_summary / save_phase2_outputs / save_processed : ringkasan dan file hasil
 """
 from __future__ import annotations
@@ -102,7 +102,7 @@ def clean_prices(prices: dict[str, pd.DataFrame], table: pd.DataFrame, cfg: dict
     """
     qcfg = cfg["quality"]
     max_days = qcfg["fx_cleaning"]["max_reversal_days"] if fx_max_days is None else fx_max_days
-    suspended = cfg["sanity_checks"]["jkse_2008"].get("suspended_days", [])
+    suspended = cfg["project"].get("suspended_days", [])
     closes, logs, flags = {}, [], {}
     for m in table.to_dict("records"):
         df = prices.get(m["ticker"])
@@ -162,8 +162,8 @@ def weekly_returns(close: pd.DataFrame, transforms: dict[str, str],
     return pd.DataFrame({c: to_returns(wk[c], transforms[c]) for c in close.columns})
 
 
-def jkse_in_usd(close: pd.DataFrame, target_id: str, fx_id: str, out_id: str) -> pd.Series:
-    """IHSG dalam USD = IHSG / (IDR per USD), hanya di tanggal yang dua-duanya punya harga."""
+def target_in_usd(close: pd.DataFrame, target_id: str, fx_id: str, out_id: str) -> pd.Series:
+    """Target dalam USD = target / (IDR per USD), hanya di tanggal yang dua-duanya punya harga."""
     df = close[[target_id, fx_id]].dropna()
     return (df[target_id] / df[fx_id]).rename(out_id)
 
@@ -207,6 +207,13 @@ def retest_decision(retest: pd.DataFrame, min_abs: float, old_name: str) -> dict
             f"Status sama dengan aturan lama ({old['abs_r_3dp']:.3f}; sensitivitas, tidak mengikat).")
     return {"status": status, "passed": bool(b["lolos"]), "abs_r": float(b["abs_r_3dp"]), "r": float(b["r"]),
             "n_weeks": int(b["n_minggu"]), "differs_from_old_rule": differs, "reason": reason, "note": note}
+
+
+def retest_skipped(target_id: str, retest_target: str) -> dict:
+    """Uji ulang dikunci terhadap satu target; target lain memakai status yang sudah diputuskan."""
+    return {"status": "tidak dijalankan", "passed": None, "differs_from_old_rule": None,
+            "reason": f"uji ulang hanya dijalankan untuk target {retest_target} (target aktif: {target_id})",
+            "note": "Status USD/IDR mengikuti keputusan di config/tickers.yaml."}
 
 
 # ---- Ringkasan & output ---------------------------------------------------------------

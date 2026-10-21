@@ -1,6 +1,7 @@
 {
-  "generated_at": "2026-10-21 21:42",
-  "jkse_first_available": "2007-01-02",
+  "generated_at": "2026-10-21 22:55",
+  "target_id": "JKSE",
+  "target_first_available": "2007-01-02",
   "analysis_start": "2007-01-01",
   "used_fallback": false,
   "start_reason": "^JKSE tersedia sejak 02 Jan 2007 dan 2007-2009 lengkap -> analisis mulai 01 Jan 2007 (GFC 2008 tercakup)",
