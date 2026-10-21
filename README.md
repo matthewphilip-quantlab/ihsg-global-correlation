@@ -170,6 +170,7 @@ Dikunci 21 Okt 2026, setelah Phase 2 dan **sebelum analisis Phase 3–7 dijalank
 **Aturan umum untuk semua phase**
 - **Seleksi** seri, fitur, lag, dan hiperparameter hanya memakai **2010–2019**. Data 2007–2009 dan 2020+ boleh dipakai untuk deskripsi, tetapi tidak untuk memilih.
 - **Klaim sinyal** hanya dari **out-of-sample 2020+** (Phase 6). Hasil in-sample di Phase 3–5 disebut "asosiasi" atau "presedensi", bukan sinyal.
+- **Kebersihan OOS mulai Phase 4** (keputusan pemilik, 21 Okt 2026, sebelum Phase 4): semua estimasi Phase 4 (lead-lag, Granger, pilihan lag, kointegrasi EIDO, regresi lead) **hanya memakai data s/d 31 Des 2019**. Data 2020+ tidak disentuh sampai Phase 6. Phase 3 yang sudah berjalan (deskriptif, termasuk periode pasca-2020) tidak memilih apa pun dan tidak diubah.
 - **Brent** selalu diberi label **"dipilih dengan pengetahuan periode uji"** (poin 3).
 - **Data:** return close-to-close dari `data/processed/` (Phase 2). Analisis harian memakai pasangan tanggal yang sama-sama buka. Analisis mingguan memakai W-FRI.
 - **Multiple testing:** tabel yang memuat banyak uji (banyak seri × lag) melaporkan p-value terkoreksi Benjamini–Hochberg (FDR 5%) di samping p-value mentah.
@@ -206,7 +207,9 @@ Dicatat di akhir Phase 1 (21 Okt 2026) supaya tidak ditentukan setelah melihat h
   - Dari sisa harinya, hitung gap pembukaan log(Open t / Close t−1) dan intraday log(Close t / Open t), lalu ulangi uji lead-lag terhadap gap.
   - Hasilnya **tidak dipakai untuk kesimpulan utama** dan selalu diberi label EKSPLORATIF.
   - Catatan bias: hari yang dibuang terkonsentrasi di 2009, 2020, 2022, dan 2023 (bukan acak), sehingga sampel sisanya kurang mewakili periode krisis.
-- **Phase 4: harga basi USD/IDR hari Senin.** Cara menangani sisa harga basi di return harian (lihat "Keterbatasan data") diputuskan dan dikunci sebelum analisis harian dimulai.
+- **Phase 4: harga basi USD/IDR. DIPUTUSKAN** (pemilik, 21 Okt 2026, sebelum Phase 4): harga USD/IDR yang ditandai `flag_stale_quote` **dibuang (NaN) di semua analisis harian mulai Phase 4**. Versi lengkap (tanpa pembuangan) dilaporkan sebagai sensitivitas.
+  - Alasannya kualitas data, bukan hasil: nilai 9.612,5 yang berulang bukan harga transaksi.
+  - Analisis mingguan (termasuk uji ulang USD/IDR) tidak terpengaruh, karena tidak ada harga yang ditandai menjadi harga mingguan.
 - **Phase 5: kandidat regime krisis 16 Okt 2026.** IHSG turun −11,57% dalam sehari (terburuk sejak krisis 1998 menurut pemberitaan; EIDO −16%). Episode ini masuk daftar kandidat regime krisis di samping 2008, 2013, 2015, 2018, 2020, dan 2022.
   - Batas episode ditentukan di Phase 5 dengan aturan yang sama untuk semua episode.
   - Data setelah episode masih sangat pendek saat dicatat, jadi kesimpulan apa pun bersifat awal.

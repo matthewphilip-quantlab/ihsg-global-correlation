@@ -71,5 +71,6 @@ Yang paling penting:
   - Granger (presedensi prediktif)
   - premium/diskon EIDO + kointegrasi
   - sensitivitas gap pembukaan EKSPLORATIF
-  - **Putuskan dulu** penanganan 25 kuotasi basi USD/IDR (`flag_stale_quote`) sebelum analisis harian.
-    Data Phase 3: membuangnya menggeser r harian 2010-2019 dari -0,072 ke -0,091.
+  - DIPUTUSKAN: harga USD/IDR ber-`flag_stale_quote` dibuang (NaN) di semua analisis harian mulai Phase 4;
+    versi lengkap dilaporkan sebagai sensitivitas.
+  - DIKUNCI: semua estimasi Phase 4 hanya memakai data s/d 31 Des 2019. Data 2020+ tidak disentuh sampai Phase 6.
