@@ -1,0 +1,4 @@
+,n,hit_rate,log_loss,brier,auc,frekuensi_naik,melonjak
+bocor: semua fitur t+1,1587.0,0.9975,0.0055,0.0018,1.0,0.5211,True
+bocor: fitur AS t+1,1587.0,0.5728,0.6852,0.2453,0.5963,0.5211,False
+bocor halus: STI/KLCI/HSI t+1,1462.0,0.6313,0.6498,0.2245,0.6873,0.5192,True

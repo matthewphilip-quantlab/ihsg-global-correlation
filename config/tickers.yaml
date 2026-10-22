@@ -118,6 +118,21 @@ regime:
   safe_haven_ids: [GOLD, DXY, UST10Y]   # dari blok `nanti`, hanya untuk analisis; Core tidak berubah
   idr_derived: [GOLD]                # juga dihitung dalam rupiah (x USD/IDR bersih): sudut pandang investor Indonesia
 
+# Phase 6: uji out-of-sample. Mengikuti README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)" PERSIS.
+oos:
+  train_start: "2010-01-01"          # expanding window mulai di sini
+  oos_start: "2020-01-01"            # OOS s/d data terakhir; refit bulanan
+  main_features: [EEM, SPX, VIX]     # + Δpremium EIDO (eido_id) + kontrol target(t)
+  sensitivity_features: [EEM, SPX, NIFTY, VIX, COPPER, BRENT]   # Granger-signifikan di Phase 4; + kontrol target(t)
+  eido_id: EIDO
+  label_eido_trend: "spesifikasi dipilih setelah melihat hasil Phase 4"
+  label_added_after_phase5: "ditambahkan setelah Phase 5, deskriptif"
+  subperiods: [["2020-01-01", "2022-12-31"], ["2023-01-01", null]]
+  calibration_bins: 10
+  placebo_seeds: 10                  # uji target diacak: jumlah pengacakan
+  har_weeks: [1, 4, 13]              # HAR-X mingguan: lag RV 1, 4, 13 minggu
+  vix_id: VIX
+
 # Seri turunan: target dalam USD = target / USD/IDR (yang sudah dibersihkan). id = <target_id><suffix>
 target_usd:
   suffix: _USD

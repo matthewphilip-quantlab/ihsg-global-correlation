@@ -1,0 +1,3 @@
+model,n,hit_rate,log_loss,brier,auc,frekuensi_naik
+baseline,1287,0.467,0.6969,0.2519,0.5019,0.467
+utama_oc,1287,0.5307,0.6941,0.2501,0.5611,0.467

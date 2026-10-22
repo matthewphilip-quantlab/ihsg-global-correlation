@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-10-23 00:50",
+  "oos": [
+    "2020-01-01",
+    "2026-10-20"
+  ],
+  "train_start": "2010-01-01",
+  "model": {
+    "utama": [
+      "r_EEM",
+      "r_SPX",
+      "r_VIX",
+      "d_premium",
+      "r_target"
+    ],
+    "sensitivitas_granger": [
+      "r_EEM",
+      "r_SPX",
+      "r_NIFTY",
+      "r_VIX",
+      "r_COPPER",
+      "r_BRENT",
+      "r_target"
+    ]
+  },
+  "dm_open_to_close": {
+    "n": 1287,
+    "selisih_loss_rata": -0.0028432371442875075,
+    "dm_hln": -0.6009857598341932,
+    "p": 0.5479553798533884,
+    "p_satu_sisi_model_lebih_baik": 0.2739776899266942
+  },
+  "placebo_ringkas": {
+    "n_pengacakan": 10,
+    "rata_selisih_log_loss": -0.0002602716174642028,
+    "porsi_signifikan_lebih_baik": 0.3,
+    "rata_auc": 0.5116166730616352,
+    "rata_hit_rate": 0.5235214804162917
+  },
+  "porsi_hari_open_valid": 0.811240073304826,
+  "label_eido_tren": "spesifikasi dipilih setelah melihat hasil Phase 4",
+  "label_subperiode": "ditambahkan setelah Phase 5, deskriptif"
+}

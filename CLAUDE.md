@@ -77,6 +77,11 @@ Yang paling penting:
 - Phase 5/7: **selesai** (23 Okt 2026; `src/regime.py`, `notebooks/05_regime_crisis.ipynb`, `reports/phase5/`).
   - Deskriptif; temuan di README "Temuan". Parameter di `regime:` pada tickers.yaml.
   - Emas, DXY, dan ^TNX diambil dari blok `nanti` hanya untuk analisis; Core tidak berubah.
-- Phase 6/7 (berikutnya): ikuti PERSIS README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)".
-  - Temuan Phase 5 tidak boleh mengubahnya.
-  - Ini phase pertama yang menyentuh data 2020+ untuk lead-lag.
+- Phase 6/7: **selesai** (23 Okt 2026; `src/oos.py`, `src/volatility.py`, `notebooks/06_oos_test.ipynb`, `reports/phase6/`).
+  - Arah: hit rate 58,7% vs 51,9%, tetapi uji yang dikunci (DM log loss) p = 0,77 -> tidak terbukti; model terlalu yakin
+    di hari ekstrem. Volatilitas: VIX membantu (GARCH-X DM QLIKE p = 0,016; HAR-X p = 0,014).
+  - GARCH buatan sendiri tervalidasi identik dengan arch saat gamma = 0. Rincian implementasi tercatat di README.
+  - Jangan "memperbaiki" model arah (kalibrasi/regularisasi) lalu mengklaim OOS: itu spesifikasi baru setelah
+    melihat hasil, dan hanya boleh dilaporkan sebagai eksploratif berlabel.
+- Phase 7/7 (berikutnya): ringkasan portfolio + jalankan ulang pipeline untuk BBCA, BBRI, TLKM, PTBA, ASII
+  (`project.target_id`; Core & aturan sama, output di reports/targets/<id>/).

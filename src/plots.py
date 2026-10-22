@@ -286,3 +286,22 @@ def plot_quantile_coefs(tabs: dict[str, pd.DataFrame], var: str, title: str):
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
     fig.tight_layout()
     return fig
+
+
+def plot_calibration(cals: dict[str, pd.DataFrame], title: str):
+    """Probabilitas prediksi rata-rata vs frekuensi naik aktual per kelompok; garis diagonal = kalibrasi sempurna."""
+    fig, ax = plt.subplots(figsize=(5.6, 5.0))
+    lo = min(min(c["p_rata"].min(), c["frekuensi_naik"].min()) for c in cals.values()) - 0.03
+    hi = max(max(c["p_rata"].max(), c["frekuensi_naik"].max()) for c in cals.values()) + 0.03
+    ax.plot([lo, hi], [lo, hi], color=INK_2, linewidth=1, linestyle="--", label="Kalibrasi sempurna")
+    for color, (name, c) in zip(SERIES, cals.items()):
+        ax.plot(c["p_rata"], c["frekuensi_naik"], "o-", color=color, markersize=7, markeredgecolor="white",
+                linewidth=1.5, label=name)
+    ax.set_xlim(lo, hi)
+    ax.set_ylim(lo, hi)
+    ax.set_xlabel("Probabilitas naik yang diprediksi (rata-rata kelompok)", color=INK_2)
+    _style(ax, title, "Frekuensi naik aktual")
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="upper left")
+    fig.tight_layout()
+    return fig

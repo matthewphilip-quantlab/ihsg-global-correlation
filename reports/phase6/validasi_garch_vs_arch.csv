@@ -1,0 +1,7 @@
+,arch,sendiri,selisih_abs,selisih_relatif
+mu,0.0517,0.0517,0.0,0.0
+omega,0.0269,0.0269,0.0,0.0
+alpha,0.1011,0.1011,0.0,0.0
+beta,0.876,0.876,0.0,0.0
+loglik (estimasi masing-masing),-3286.3801,-3286.3801,0.0,0.0
+loglik sendiri di parameter arch,-3286.3801,-3286.3801,0.0,0.0

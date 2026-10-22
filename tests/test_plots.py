@@ -58,3 +58,9 @@ def test_phase5_plots_render():
     q = pd.DataFrame({"kuantil": [0.1, 0.5, 0.9, "OLS"], "variabel": "B", "beta": [0.1, 0.0, -0.1, 0.0],
                       "ci_lo": [0.0, -0.1, -0.2, -0.05], "ci_hi": [0.2, 0.1, 0.0, 0.05]})
     assert plots.plot_quantile_coefs({"a": q, "b": q}, "B", "tes") is not None
+
+
+def test_phase6_plot_renders():
+    import pandas as pd
+    c = pd.DataFrame({"p_rata": [0.4, 0.5, 0.6], "frekuensi_naik": [0.42, 0.5, 0.63], "n": [10, 10, 10]})
+    assert plots.plot_calibration({"a": c, "b": c * 0.98}, "tes") is not None

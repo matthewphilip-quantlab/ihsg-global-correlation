@@ -19,7 +19,7 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 | 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan" |
 | 4/7 | Lead-lag & efek zona waktu (CCF, regresi lead, Granger, premium EIDO; in-sample 2010–2019) | Selesai (21 Okt 2026); lihat "Temuan" |
 | 5/7 | Rolling correlation & regime krisis (event study, quantile regression Brent, aset pelindung) | Selesai (23 Okt 2026); lihat "Temuan" |
-| 6/7 | Uji sinyal out-of-sample | Belum |
+| 6/7 | Uji sinyal out-of-sample (arah & volatilitas, walk-forward 2020–sekarang) | Selesai (23 Okt 2026); lihat "Temuan" |
 | 7/7 | Ringkasan portfolio | Belum |
 
 ## Struktur
@@ -216,6 +216,21 @@ Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) da
   - Phase 4 menunjukkan bahwa sebagian besar reaksi IHSG terhadap kabar semalam terjadi di **gap pembukaan**. Karena itu, daya prediksi close-to-close di Phase 6 **TIDAK berarti dapat dieksploitasi**.
   - Kalau data Open 2020+ memungkinkan (setelah hari Open = Close kemarin dibuang), prediksi untuk return **open-to-close** juga dilaporkan sebagai uji **EKSPLORATIF**.
 
+**Rincian implementasi Phase 6.** Ditetapkan 23 Okt 2026, sebelum hasil OOS dilihat, dan sesuai instruksi pemilik:
+- **Logit tanpa regularisasi (MLE).** Tidak ada hyperparameter, jadi tidak ada tuning sama sekali. Konvergensi tercatat di semua refit.
+- **GARCH-X ditulis sendiri:** σ²ₜ = (ω + αε²ₜ₋₁ + βσ²ₜ₋₁)·exp(γ·ΔlogVIXₜ₋₁), mean konstan, distribusi normal, return dalam persen.
+  - Bentuk perkalian menjamin varians positif, dan menjadi GARCH(1,1) persis saat γ = 0.
+  - Backcast dan rekursi mengikuti `arch`. Validasi di data latih 2010–2019: log-likelihood di parameter `arch` identik (selisih 0), dan estimasi sendiri cocok sampai selisih relatif ≤ 1,1·10⁻⁵.
+  - Hari tanpa perdagangan VIX diberi ΔlogVIX = 0.
+- **HAR-X mingguan** (instruksi pemilik 23 Okt 2026; menggantikan versi |return| harian di tabel rencana):
+  - RV minggu = jumlah kuadrat return harian IHSG.
+  - Model: log RVₜ₊₁ ~ log rata-rata RV 1, 4, dan 13 minggu (+ ΔlogVIX mingguan).
+  - Ramalan = exp(prediksi + s²/2).
+- **Kalender:** baris = hari bursa IHSG t. Fitur = return seri di tanggal kalender t, dihitung di kalender seri itu sendiri tanpa forward-fill. Kalau seri tidak diperdagangkan di t, hari itu tidak diprediksi.
+- **Data latih tiap refit** = baris yang return targetnya sudah terealisasi sebelum awal bulan prediksi.
+- **Cek kebocoran tambahan:** "STI/KLCI/HSI t+1" sebagai bocor halus yang realistis.
+- **Penjelas berlabel "tambahan, tidak dipra-registrasi":** DM dengan loss Brier dan uji tanda hit rate. Keduanya tidak mengubah kesimpulan yang mengikat (log loss).
+
 ### Aturan Phase 5 (dikunci sebelum Phase 5)
 - Analisis Phase 5 boleh memakai seluruh periode (2007–sekarang), tetapi sifatnya **DESKRIPTIF**.
 - **Tidak ada temuan Phase 5 yang boleh mengubah Spesifikasi Phase 6 di atas.** Keputusan pemilik, 23 Okt 2026.
@@ -325,6 +340,32 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
   - Yield US 10Y +0,08 pp, sehingga tidak melindungi. Di 2013 dan 2022 yield melonjak hampir 1 pp karena guncangannya berupa guncangan suku bunga.
   - **Tidak ada yang berbalik tanda** korelasinya dengan IHSG saat krisis; yang berubah adalah kekuatannya.
 - **Okt 2026 (deskriptif, terpotong, tidak masuk ringkasan):** IHSG −14,8% ke titik terendah sehari setelah jangkar, dengan drawdown jendela −22,4%. STI, KLCI, dan EEM nyaris tidak bergerak (−1,7% s/d 0%), jadi episode ini tampak spesifik Indonesia, bukan guncangan global.
+
+**Phase 6, uji out-of-sample (23 Okt 2026; walk-forward, refit bulanan; OOS 2 Jan 2020 – 20 Okt 2026)**
+- **Arah IHSG besok (model utama: EEM, S&P 500, ΔVIX, Δpremium EIDO + IHSG hari ini; 1.588 hari):**
+
+  | | Naif | Model utama |
+  |---|---|---|
+  | Hit rate | 51,9% | **58,7%** |
+  | AUC | 0,494 | **0,611** |
+  | Brier | 0,2504 | 0,2432 |
+  | Log loss | 0,6939 | 0,6903 |
+
+  - **Uji yang dikunci (Diebold–Mariano, log loss): p = 0,77, jadi TIDAK terbukti lebih baik dari naif.**
+  - Penjelasnya (tidak dipra-registrasi): DM Brier p = 0,03; uji tanda hit rate p = 2·10⁻⁶ (307 vs 199 hari hanya satu pihak yang benar).
+  - Model menangkap **arah**, tetapi **terlalu yakin di hari-hari ekstrem**. Di kelompok prediksi paling yakin (p ≈ 0,76), frekuensi naik aktual hanya 0,63, dan kuintil keyakinan tertinggi menghapus seluruh perbaikan log loss.
+  - Per sub-periode (*ditambahkan setelah Phase 5, deskriptif*): log loss 2020–2022 lebih buruk dari naif (0,710 vs 0,693, hari-hari COVID); 2023–sekarang lebih baik (0,674 vs 0,694). Jendela Okt 2026: 23 hari, hit rate 61% vs naif 35%.
+  - Model sensitivitas (6 seri Granger-signifikan) dan z-spread EIDO versi tren (*spesifikasi dipilih setelah melihat hasil Phase 4*): sama, tidak signifikan (DM p = 0,61 dan 0,72).
+- **Cek kebocoran (lolos):**
+  - Fitur hanya memakai informasi setelah IHSG tutup di t (dicek mekanis untuk semua baris).
+  - Target diacak 10×: rata-rata selisih log loss vs naif −0,0003, AUC rata-rata 0,51.
+  - Fitur sengaja bocor: "semua fitur t+1" → hit rate 99,7%; "STI/KLCI/HSI t+1" (bocor halus) → 63,1%, AUC 0,687. Keduanya melonjak.
+  - "Fitur AS t+1" **tidak** melonjak (57,3%), karena sesi AS t+1 berjalan setelah IHSG t+1 tutup. Ini konsisten dengan Phase 4.
+- **Volatilitas: VIX membantu (lolos uji yang dikunci).**
+  - GARCH-X vs GARCH (harian, 1.638 hari): QLIKE 1,003 vs 1,039, DM p = 0,016; MSE p = 0,034. γ stabil 1,41–1,77, artinya VIX naik 10% semalam ↔ varians IHSG besok 14–18% lebih tinggi (rata-rata γ: +17%).
+  - HAR-X vs HAR (mingguan, 353 minggu): QLIKE 2,592 vs 2,636, DM p = 0,014; MSE p = 0,078.
+- **Open-to-close (EKSPLORATIF; 81% hari OOS punya data Open valid):** hit rate 53,1% vs naif 46,7%, DM p = 0,55. Tidak ada bukti daya prediksi setelah harga pembukaan.
+- **Tradeability (sesuai pra-registrasi):** daya prediksi close-to-close tidak berarti dapat dieksploitasi. Sebagian besar reaksi terhadap kabar semalam sudah terjadi di gap pembukaan (Phase 4), dan uji open-to-close tidak menunjukkan sisa daya prediksi.
 
 ## Keterbatasan data
 

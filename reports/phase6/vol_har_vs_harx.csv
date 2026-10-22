@@ -1,0 +1,3 @@
+loss,dengan_vix,tanpa_vix,n,selisih_loss_rata,dm_hln,p,p_satu_sisi_model_lebih_baik
+QLIKE,2.5922,2.6363,353,-0.0441,-2.4797,0.0136,0.0068
+MSE,186.8713,202.2794,353,-15.4081,-1.7676,0.078,0.039

@@ -1,0 +1,7 @@
+periode,model,n,hit_rate,log_loss,brier,auc,frekuensi_naik
+2020-2022,baseline,715,0.5231,0.6934,0.2501,0.4629,0.5231
+2020-2022,utama,715,0.5958,0.7102,0.2464,0.6086,0.5231
+2023-sekarang,baseline,873,0.5155,0.6943,0.2506,0.4918,0.5155
+2023-sekarang,utama,873,0.5796,0.674,0.2405,0.6135,0.5155
+"jendela Okt 2026 (18 Sep - 21 Oct 2026, terpotong)",baseline,23,0.3478,0.7217,0.2643,0.2958,0.3478
+"jendela Okt 2026 (18 Sep - 21 Oct 2026, terpotong)",utama,23,0.6087,0.6752,0.2409,0.7417,0.3478
