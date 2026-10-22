@@ -49,7 +49,8 @@ def fisher_diff(r1: float, n1: int, r2: float, n2: int, se_factor: float = 1.0) 
     """Uji selisih dua korelasi dari sampel INDEPENDEN (Fisher z). Return (z, p dua sisi)."""
     if min(n1, n2) <= 3 or not (np.isfinite(r1) and np.isfinite(r2)):
         return np.nan, np.nan
-    z = (np.arctanh(r1) - np.arctanh(r2)) / math.sqrt(se_factor / (n1 - 3) + se_factor / (n2 - 3))
+    z1, z2 = np.arctanh(np.clip([r1, r2], -0.999999, 0.999999))
+    z = (z1 - z2) / math.sqrt(se_factor / (n1 - 3) + se_factor / (n2 - 3))
     return float(z), float(2 * stats.norm.sf(abs(z)))
 
 
@@ -59,6 +60,8 @@ def corr_with_ci(x: pd.Series, y: pd.Series, method: str = "pearson") -> dict:
     if n < 10:
         return {"r": np.nan, "n": n, "ci_lo": np.nan, "ci_hi": np.nan, "p": np.nan}
     a, b = pair.iloc[:, 0].to_numpy(), pair.iloc[:, 1].to_numpy()
+    if np.ptp(a) == 0 or np.ptp(b) == 0:                     # input konstan: korelasi tidak terdefinisi
+        return {"r": np.nan, "n": n, "ci_lo": np.nan, "ci_hi": np.nan, "p": np.nan}
     res = stats.pearsonr(a, b) if method == "pearson" else stats.spearmanr(a, b)
     r, p = float(res[0]), float(res[1])
     lo, hi = fisher_ci(r, n, se_factor=1.0 if method == "pearson" else SPEARMAN_SE_FACTOR)
@@ -371,7 +374,8 @@ def save_tables(out_dir: Path, tables: dict[str, pd.DataFrame], summary: dict) -
     paths = []
     for name, df in tables.items():
         p = out_dir / f"{name}.csv"
-        df.round(4).to_csv(p, index=not isinstance(df.index, pd.RangeIndex))
+        rounded = df.apply(lambda s: s.round(4) if pd.api.types.is_float_dtype(s) else s)
+        rounded.to_csv(p, index=not isinstance(df.index, pd.RangeIndex))
         paths.append(p)
     p = out_dir / "summary.json"
     p.write_text(json.dumps({"generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"), **summary},

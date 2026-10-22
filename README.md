@@ -18,7 +18,7 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 | 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Selesai (21 Okt 2026); USD/IDR lolos uji ulang → driver |
 | 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan" |
 | 4/7 | Lead-lag & efek zona waktu (CCF, regresi lead, Granger, premium EIDO; in-sample 2010–2019) | Selesai (21 Okt 2026); lihat "Temuan" |
-| 5/7 | Rolling correlation & regime krisis | Belum |
+| 5/7 | Rolling correlation & regime krisis (event study, quantile regression Brent, aset pelindung) | Selesai (23 Okt 2026); lihat "Temuan" |
 | 6/7 | Uji sinyal out-of-sample | Belum |
 | 7/7 | Ringkasan portfolio | Belum |
 
@@ -219,6 +219,12 @@ Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) da
 ### Aturan Phase 5 (dikunci sebelum Phase 5)
 - Analisis Phase 5 boleh memakai seluruh periode (2007–sekarang), tetapi sifatnya **DESKRIPTIF**.
 - **Tidak ada temuan Phase 5 yang boleh mengubah Spesifikasi Phase 6 di atas.** Keputusan pemilik, 23 Okt 2026.
+- **Rincian pelaksanaan dari instruksi pemilik (23 Okt 2026)**, yang lebih spesifik daripada tabel di atas:
+  - Rolling correlation memakai jendela **52 dan 156 minggu**, menggantikan versi sekunder 250 hari harian.
+  - Korelasi event study dibandingkan dengan **250 hari bursa sebelum jendela** (tidak tumpang tindih). Pembanding "normal" dari tabel tetap dilaporkan.
+  - Quantile regression Brent memakai kontrol **Tembaga dan EEM**.
+  - Metrik event study: drawdown maksimum, hari ke titik terendah, dan return kumulatif +60 untuk IHSG, KLCI, STI, dan EEM.
+  - Aset pelindung: emas (GC=F), DXY, dan ^TNX dari blok `nanti`, ditambah emas dalam rupiah dan USD/IDR sebagai sudut pandang investor Indonesia.
 
 **Stretch goal (tidak wajib, EKSPLORATIF):** PCA (faktor bersama), VAR/impulse response, HMM untuk regime, uji structural break (Bai–Perron), spillover Diebold–Yilmaz, dan LightGBM + SHAP. Hasilnya tidak dipakai untuk kesimpulan utama. Klaim prediktif dari teknik ini tetap harus lewat OOS 2020+, dan seleksinya tetap hanya dari 2010–2019.
 
@@ -286,6 +292,39 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
   - S&P 500, EEM, dan VIX malam ini berkorelasi ±0,44–0,46 dengan **gap pembukaan** IHSG besok, dan hanya ±0,13–0,25 dengan pergerakan intraday. Sebagian besar "reaksi besok" sudah terjadi di pembukaan.
   - Korelasi intraday kemungkinan dibesar-besarkan oleh Open indeks yang memakai harga kemarin untuk saham yang belum diperdagangkan.
   - Hasil ini tidak dipakai untuk kesimpulan utama.
+
+**Phase 5, regime & krisis (23 Okt 2026; DESKRIPTIF, seluruh periode, tidak mengubah Spesifikasi Phase 6)**
+- **Pergeseran pasca-2020: Hang Seng tren, S&P 500 lonjakan sesaat.**
+  - Hang Seng (rolling 52 / 156 minggu): rata-rata sebelum 2020 0,45 / 0,49 → 2020–2022 0,48 / 0,52 → **2023–sekarang 0,18 / 0,19**. Penurunannya baru terjadi setelah 2023 dan bertahan, juga di jendela 156 minggu.
+  - S&P 500: 0,28 / 0,34 → **2020–2022 0,49 / 0,58** → 2023–sekarang 0,24 / 0,27, kembali ke level lama. Itu guncangan bersama era COVID, bukan pergeseran permanen.
+  - Sejak 2023 korelasi IHSG dengan hampir semua pasar regional melemah (STI 0,34, KLCI 0,30, EEM 0,33; rolling 52 minggu).
+  - Korelasi Brent bahkan menjadi negatif di jendela terakhir (52 minggu −0,32). Ini deskriptif saja dan berlabel Brent.
+- **Event study, median 6 episode (2008, 2013, 2015, 2018 Agu, 2020, 2022):**
+
+  | Seri | Drawdown maks | Hari bursa ke titik terendah | Return +60 hari |
+  |---|---|---|---|
+  | IHSG | −18,0% | 28 | −5,8% |
+  | EEM | −20,1% | 31,5 | −8,0% |
+  | STI | −14,3% | 22 | −7,8% |
+  | KLCI | −10,0% | 38,5 | −3,4% |
+
+  - IHSG jatuh lebih dalam daripada Singapura dan Malaysia, hampir sedalam EM secara umum.
+  - Pemulihannya dalam 60 hari ada di tengah-tengah.
+  - Episode terdalam: 2008 (−48,7%) dan 2020 (−33,7%).
+  - Sensitivitas jangkar 2018 = 5 Feb: drawdown median sama (−18,0%), tetapi return +60 hari median lebih buruk (−9,7%).
+- **Korelasi naik saat krisis** (harian hari yang sama, median setahun sebelum → di dalam jendela): STI +0,37 → +0,66; KLCI +0,41 → +0,59; EEM +0,27 → +0,36. Kenaikan per episode signifikan (Fisher z) di 2015, 2020, dan 2022 untuk STI dan KLCI, tetapi tidak di setiap episode. Manfaat diversifikasi regional menyusut justru saat paling dibutuhkan.
+- **Hipotesis Brent tidak didukung data** (*dipilih dengan pengetahuan periode uji*):
+  - Di 2010–2019, dengan kontrol Tembaga dan EEM, koefisien Brent praktis nol di semua kuantil (−0,015 s/d +0,002; semua CI memuat nol).
+  - Di seluruh periode, koefisien Brent kecil dan **positif**, sedikit lebih besar di ekor bawah (τ 0,25: +0,048, p_bh 0,03; τ 0,1: +0,072, CI memuat nol). Artinya di minggu buruk IHSG, minyak cenderung ikut turun (jalur permintaan), **bukan** naik (jalur beban impor).
+  - Interaksi lonjakan Brent (> +4,5% per minggu): tanda **tidak berbalik negatif**. Kemiringan total di minggu lonjakan +0,23 (2010–2019, CI −0,00 s/d +0,46) dan +0,04 (seluruh periode, CI memuat nol).
+  - Hipotesis "lonjakan minyak menekan IHSG" tidak terlihat di data mingguan, termasuk 2022.
+- **Aset pelindung** (median perubahan dari sebelum jangkar sampai titik terendah IHSG, 6 episode; IHSG −16,4%):
+  - **Memegang USD +9,5%** dan **emas dalam rupiah +10,1%**: perlindungan bagi investor rupiah datang terutama dari pelemahan rupiah.
+  - Emas dalam USD justru −0,9%. Korelasi mingguannya dengan IHSG **naik** saat krisis (+0,13 → +0,37), karena emas ikut dijual saat likuidasi 2008 dan Mar 2020.
+  - Dollar Index +2,6%, dengan korelasi yang makin negatif saat krisis (−0,20 → −0,46): pelindung paling konsisten di antara aset USD.
+  - Yield US 10Y +0,08 pp, sehingga tidak melindungi. Di 2013 dan 2022 yield melonjak hampir 1 pp karena guncangannya berupa guncangan suku bunga.
+  - **Tidak ada yang berbalik tanda** korelasinya dengan IHSG saat krisis; yang berubah adalah kekuatannya.
+- **Okt 2026 (deskriptif, terpotong, tidak masuk ringkasan):** IHSG −14,8% ke titik terendah sehari setelah jangkar, dengan drawdown jendela −22,4%. STI, KLCI, dan EEM nyaris tidak bergerak (−1,7% s/d 0%), jadi episode ini tampak spesifik Indonesia, bukan guncangan global.
 
 ## Keterbatasan data
 

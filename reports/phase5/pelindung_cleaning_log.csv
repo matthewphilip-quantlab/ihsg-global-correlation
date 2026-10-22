@@ -1,0 +1,2 @@
+id,ticker,Date,close,reason,entry_date,reversal_date,entry_ret,reversal_ret,run_days
+JKSE,^JKSE,2017-12-01,5952.1382,"baris basi (Close = kemarin, Volume 0) -> libur",,,,,

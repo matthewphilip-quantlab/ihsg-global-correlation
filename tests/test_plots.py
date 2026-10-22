@@ -45,3 +45,16 @@ def test_phase4_plots_render():
     assert plots.plot_ccf_heatmap(ccf, {"A": "a"}, {"A": "after", "B": "sync"}, "tes") is not None
     z = pd.Series(np.random.default_rng(0).normal(size=300), index=pd.bdate_range("2015-01-01", periods=300))
     assert plots.plot_spread_z(z, "tes") is not None
+
+
+def test_phase5_plots_render():
+    import numpy as np
+    import pandas as pd
+    idx = pd.date_range("2010-01-01", periods=300, freq="W-FRI")
+    r = pd.DataFrame({"A": np.linspace(0.2, 0.6, 300), "B": 0.3}, index=idx)
+    assert plots.plot_rolling_corr({52: r, 156: r * 0.9}, {"A": "a"}, [(idx[10], idx[20])], "tes") is not None
+    p = pd.DataFrame({"T": np.linspace(100, 80, 81), "P": 100.0}, index=pd.Index(range(-20, 61), name="hari"))
+    assert plots.plot_event_paths({"2008": p, "2013": p}, {}, "tes", notes={"2013": "x"}) is not None
+    q = pd.DataFrame({"kuantil": [0.1, 0.5, 0.9, "OLS"], "variabel": "B", "beta": [0.1, 0.0, -0.1, 0.0],
+                      "ci_lo": [0.0, -0.1, -0.2, -0.05], "ci_hi": [0.2, 0.1, 0.0, 0.05]})
+    assert plots.plot_quantile_coefs({"a": q, "b": q}, "B", "tes") is not None

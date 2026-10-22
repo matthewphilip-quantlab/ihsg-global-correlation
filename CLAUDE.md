@@ -74,8 +74,9 @@ Yang paling penting:
     Δpremium. DIPUTUSKAN (23 Okt): Δpremium = fitur utama; z-spread versi tren hanya sensitivitas berlabel di Phase 6.
 - DIKUNCI 23 Okt 2026: README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)" (fitur, target, OOS, metrik, loss DM,
   peringatan tradeability) dan "Aturan Phase 5" (deskriptif; tidak boleh mengubah spesifikasi Phase 6).
-- Phase 5/7 (berikutnya), sesuai rencana yang dikunci:
-  - rolling correlation 52 minggu / 250 hari
-  - event study (jangkar & aturan di README; Okt 2026 hanya deskriptif)
-  - quantile regression Brent (berlabel)
-  - aset pelindung emas/DXY (deskriptif)
+- Phase 5/7: **selesai** (23 Okt 2026; `src/regime.py`, `notebooks/05_regime_crisis.ipynb`, `reports/phase5/`).
+  - Deskriptif; temuan di README "Temuan". Parameter di `regime:` pada tickers.yaml.
+  - Emas, DXY, dan ^TNX diambil dari blok `nanti` hanya untuk analisis; Core tidak berubah.
+- Phase 6/7 (berikutnya): ikuti PERSIS README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)".
+  - Temuan Phase 5 tidak boleh mengubahnya.
+  - Ini phase pertama yang menyentuh data 2020+ untuk lead-lag.

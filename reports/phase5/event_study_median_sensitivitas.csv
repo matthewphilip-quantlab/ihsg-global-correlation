@@ -1,0 +1,5 @@
+id,max_drawdown,hari_ke_titik_terendah,return_ke_titik_terendah,return_kumulatif_akhir,r_setahun_sebelum,r_jendela,p_fisher,r_normal
+EEM,-0.2009,15.0,-0.1632,-0.0801,0.2731,0.3216,0.4609,0.2617
+JKSE,-0.1802,39.5,-0.1642,-0.0968,,,,
+KLCI,-0.0877,16.5,-0.0557,-0.0202,0.4086,0.5867,0.0395,0.4836
+STI,-0.1418,22.0,-0.1176,-0.0677,0.3696,0.6624,0.0035,0.533

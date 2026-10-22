@@ -94,6 +94,30 @@ analysis:
     eido_compare_ids: [SPX, EEM]       # apakah EIDO membawa informasi tambahan di luar seri ini?
     coint_alpha: 0.05
 
+# Phase 5: regime & krisis (DESKRIPTIF; tidak boleh mengubah Spesifikasi Phase 6). Jangkar & jendela dari README.
+regime:
+  rolling_weeks: [52, 156]
+  rolling_min_frac: 0.8              # minimal 80% minggu tersedia di dalam jendela rolling
+  post_break: "2020-01-01"           # untuk menjawab: pergeseran pasca-2020 tren atau lonjakan sesaat?
+  window_days: [-20, 60]             # hari bursa IHSG di sekitar jangkar (hari 0 = hari bursa pertama >= jangkar)
+  pre_days: 250                      # pembanding korelasi: 250 hari bursa IHSG yang berakhir sebelum jendela
+  episodes:                          # prinsip: guncangan global yang menular ke pasar emerging
+    "2008": "2008-09-15"             # Lehman
+    "2013": "2013-05-22"             # taper tantrum
+    "2015": "2015-08-11"             # devaluasi yuan
+    "2018": "2018-08-10"             # krisis lira Turki / penularan EM
+    "2020": "2020-03-11"             # WHO: pandemi
+    "2022": "2022-02-24"             # invasi Rusia ke Ukraina
+  sensitivity: {"2018": "2018-02-05"}    # dijalankan ulang menggantikan jangkar 2018, berlabel
+  descriptive_only: {"2026": "2026-10-16"}   # jangkar dari IHSG sendiri; terpotong; DIKELUARKAN dari ringkasan
+  event_ids: [KLCI, STI, EEM]        # dibandingkan dengan target
+  quantiles: [0.1, 0.25, 0.5, 0.75, 0.9]
+  brent_id: BRENT
+  qr_controls: [COPPER, EEM]         # kontrol permintaan global
+  brent_spike_pct: 90                # lonjakan Brent = return mingguan > persentil ini (dihitung di 2010-2019)
+  safe_haven_ids: [GOLD, DXY, UST10Y]   # dari blok `nanti`, hanya untuk analisis; Core tidak berubah
+  idr_derived: [GOLD]                # juga dihitung dalam rupiah (x USD/IDR bersih): sudut pandang investor Indonesia
+
 # Seri turunan: target dalam USD = target / USD/IDR (yang sudah dibersihkan). id = <target_id><suffix>
 target_usd:
   suffix: _USD

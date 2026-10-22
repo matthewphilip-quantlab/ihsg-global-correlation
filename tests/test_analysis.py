@@ -210,3 +210,8 @@ def test_usd_effect_text_magnitude_aware():
                         "r_usd": [0.51, -0.30, 0.46, -0.36, -0.6]})
     txt = an.usd_effect_text(cmp, "FX")
     assert "a +0.01 (praktis sama)" in txt and "b +0.06 (lebih kuat dalam USD)" in txt   # VIX-like -0.30 -> -0.36 = +0.06
+
+
+def test_corr_with_ci_constant_input_is_nan():
+    res = an.corr_with_ci(pd.Series(np.ones(50)), pd.Series(np.arange(50.0)))
+    assert np.isnan(res["r"]) and res["n"] == 50

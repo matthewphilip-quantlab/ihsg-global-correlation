@@ -223,3 +223,66 @@ def plot_spread_z(z: pd.Series, title: str):
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="upper right")
     fig.tight_layout()
     return fig
+
+
+def plot_rolling_corr(rolls: dict[int, pd.DataFrame], names: dict, shade: list[tuple], title: str, ncols: int = 2):
+    """Small multiples: korelasi bergulir per seri (satu warna per panjang jendela), episode krisis diarsir."""
+    ids = list(next(iter(rolls.values())).columns)
+    nrows = int(np.ceil(len(ids) / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(12, 2.1 * nrows + 0.8), sharex=True, sharey=True)
+    for ax, sid in zip(axes.flat, ids):
+        for a, b in shade:
+            ax.axvspan(a, b, color=GRID, alpha=0.9, linewidth=0)
+        for color, (w, roll) in zip(SERIES, rolls.items()):
+            ax.plot(roll.index, roll[sid], color=color, linewidth=1.5, label=f"{w} minggu")
+        ax.axhline(0, color=INK_2, linewidth=0.8)
+        _style(ax, names.get(sid, sid))
+        ax.title.set_fontsize(10)
+    for ax in list(axes.flat)[len(ids):]:
+        ax.set_visible(False)
+    axes.flat[0].legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower left")
+    fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
+    fig.tight_layout()
+    return fig
+
+
+def plot_event_paths(paths: dict[str, pd.DataFrame], names: dict, title: str, ncols: int = 4, notes: dict | None = None):
+    """Satu panel per episode: harga (sebelum hari 0 = 100) target dan pembanding, hari 0 = jangkar."""
+    eps = list(paths)
+    nrows = int(np.ceil(len(eps) / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(13, 2.8 * nrows + 0.8), sharey=True, squeeze=False)
+    for ax, ep in zip(axes.flat, eps):
+        df = paths[ep]
+        ax.axvline(0, color=INK_2, linewidth=0.8)
+        ax.axhline(100, color=GRID, linewidth=0.8)
+        for color, sid in zip(SERIES, df.columns):
+            ax.plot(df.index, df[sid], color=color, linewidth=1.8 if sid == df.columns[0] else 1.2,
+                    label=names.get(sid, sid))
+        _style(ax, f"{ep}" + (f" ({notes[ep]})" if notes and ep in notes else ""))
+        ax.title.set_fontsize(10)
+    for ax in list(axes.flat)[len(eps):]:
+        ax.set_visible(False)
+    axes.flat[0].legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower left")
+    fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
+    fig.supxlabel("Hari bursa sejak jangkar", fontsize=9, color=INK_2)
+    fig.tight_layout()
+    return fig
+
+
+def plot_quantile_coefs(tabs: dict[str, pd.DataFrame], var: str, title: str):
+    """Koefisien satu variabel per kuantil (CI 95%), satu warna per periode; garis putus = OLS."""
+    fig, ax = plt.subplots(figsize=(8, 3.8))
+    for k, (color, (per, tab)) in enumerate(zip(SERIES, tabs.items())):
+        t = tab[tab["variabel"] == var]
+        q = t[t["kuantil"] != "OLS"]
+        x = q["kuantil"].astype(float) + (k - 0.5) * 0.012
+        ax.vlines(x, q["ci_lo"], q["ci_hi"], color=color, linewidth=2)
+        ax.plot(x, q["beta"], "o-", color=color, markersize=6, markeredgecolor="white", linewidth=1.2, label=per)
+        ols = t[t["kuantil"] == "OLS"]["beta"].iloc[0]
+        ax.axhline(ols, color=color, linestyle="--", linewidth=1)
+    ax.axhline(0, color=INK_2, linewidth=0.8)
+    ax.set_xlabel("Kuantil return mingguan IHSG (garis putus = OLS)", color=INK_2)
+    _style(ax, title, "Koefisien")
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK_2)
+    fig.tight_layout()
+    return fig
