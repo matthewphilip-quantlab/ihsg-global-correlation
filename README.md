@@ -50,11 +50,35 @@
 
 ## Apa yang akan saya lakukan berikutnya
 
-1. **Forward test yang jujur.** Membekukan model arah dan GARCH-X, lalu mencatat prediksi harian ke depan (`scripts/daily_signal.py`, `reports/forward_test/`). Ini satu-satunya bahan evaluasi bersih untuk versi model mana pun di masa depan.
+1. **Menjalankan forward test** (sudah disiapkan, lihat "Forward test"): mencatat prediksi model beku setiap hari bursa, lalu mengevaluasinya setelah ±250 hari. Ini satu-satunya bahan evaluasi bersih untuk versi model mana pun di masa depan.
 2. **Kalibrasi model arah sebagai spesifikasi BARU** yang dipra-registrasi (misalnya regularisasi atau batas probabilitas), lalu dievaluasi hanya pada data forward test. Bukan dengan menyetel ulang di 2020–2026.
 3. **Data yang lebih baik:** harga Open/intraday dari sumber resmi (BEI), kurs JISDOR sebagai pembanding IDR=X, dan data arus dana asing harian, untuk menguji tradeability dan jalur rupiah dengan benar.
 4. **Total return saham yang dihitung sendiri** dari Close tanpa penyesuaian dan dividen, untuk menggantikan aturan pembuangan ex-date.
 5. **Stretch goal yang sudah direncanakan** (eksploratif): PCA faktor regional, HMM regime, uji structural break, dan spillover Diebold–Yilmaz.
+
+## Forward test (model beku)
+
+Prediksi yang dicatat **sebelum** hasilnya terjadi adalah **satu-satunya bahan evaluasi jujur** untuk versi model mana pun di masa depan. Hasil 2020–2026 sudah "terpakai" untuk menilai spesifikasi Phase 6.
+
+- **Model beku:** `models/frozen_2026-10-21.json` berisi logit utama (EEM, S&P 500, ΔlogVIX, Δpremium EIDO, IHSG(t)) dan GARCH-X dengan VIX. Keduanya dilatih sekali dengan data 2010 s/d 21 Okt 2026 memakai spesifikasi Phase 6, tanpa tuning. File model beku tidak boleh ditimpa; versi baru = file baru.
+- **Jalankan tiap hari bursa antara ±04:30 dan 09:00 WIB**, yaitu setelah sesi AS final dan sebelum BEI buka:
+  ```bash
+  python scripts/daily_signal.py
+  ```
+  Script mengunduh data segar, menerapkan aturan cleaning yang sama, lalu menambahkan satu baris ke `reports/forward_test/log.csv`: probabilitas IHSG naik di hari bursa berikutnya, prakiraan volatilitas harian (1 sd, %), dan nilai fiturnya.
+- **Penjaga kejujuran:**
+  - **Bar AS belum final:** script menolak mencatat sebelum sesi AS tanggal fitur final (21:30 UTC). Ini ditemukan saat uji coba: Yahoo mengirim bar AS yang masih berjalan di sore hari WIB, dan probabilitasnya ikut berubah-ubah.
+  - **Terlambat:** script juga menolak setelah BEI buka.
+  - **Data basi:** script menolak kalau data IHSG terakhir lebih tua dari 4 hari.
+  - **Fitur belum lengkap:** script menolak kalau ada fitur yang belum lengkap.
+- **Isi log:** baris lama tidak pernah ditimpa. Kolom hasil aktual (`target_date`, `r_aktual_pct`, `y_aktual`) diisi otomatis pada run berikutnya setelah hari target terjadi. Jangan mengedit log secara manual.
+- **Uji coba tanpa menulis log:** `python scripts/daily_signal.py --dry-run`. Angka yang ditampilkan di luar jendela waktu diberi label SEMENTARA.
+- **Evaluasi:** `python scripts/daily_signal.py --evaluate` menghitung hit rate, log loss, Brier, AUC, dan QLIKE **hanya** untuk baris yang tercatat tepat waktu dan hasilnya sudah terjadi.
+  - Bandingkan dengan log loss naif 0,693.
+  - Butuh ratusan hari sebelum layak diuji; ratusan hari, bukan puluhan.
+  - Uji Diebold–Mariano yang sama dengan Phase 6 baru bermakna setelah ±250 hari bursa.
+- **Model baru** (misalnya versi yang dikalibrasi): bekukan sebagai file baru dengan tanggalnya sendiri, dan pra-registrasikan dulu di README. Model itu hanya dievaluasi pada baris log yang dicatat setelah tanggal bekunya.
+- **Status 22 Okt 2026:** model sudah dibekukan, tapi log masih kosong. Baris pertama yang sah baru bisa dibuat di dalam jendela waktu berikutnya.
 
 ## Latar belakang & pertanyaan riset
 
@@ -89,6 +113,8 @@ src/                       # semua logika: config, data_loader, quality, preproc
 notebooks/01-07_*.ipynb    # laporan berjalan; hanya memanggil fungsi dari src/
 reports/                   # hasil kecil yang di-commit (CSV, JSON keputusan); target lain di reports/targets/<id>/
 scripts/screening.py       # artefak beku: screening Core vs Nanti 2010-2019
+scripts/daily_signal.py    # forward test harian dengan model beku (lihat "Forward test")
+models/                    # model beku (JSON) untuk forward test; tidak boleh ditimpa
 tests/                     # pytest dengan data sintetis (tanpa internet)
 data/                      # cache download, tidak di-commit
 ```

@@ -1,0 +1,32 @@
+{
+  "model_version": "frozen_2026-10-21",
+  "frozen_at_utc": "2026-10-22T14:06:47+00:00",
+  "as_of": "2026-10-21",
+  "train_start": "2010-01-01",
+  "n_train_logit": 3838,
+  "logit_features": [
+    "r_EEM",
+    "r_SPX",
+    "r_VIX",
+    "d_premium",
+    "r_target"
+  ],
+  "logit_params": {
+    "const": 0.15002474179801373,
+    "r_EEM": 22.460908764746744,
+    "r_SPX": 3.52680150477587,
+    "r_VIX": -1.3926631783428205,
+    "d_premium": 14.298360811628687,
+    "r_target": -5.450591413511069
+  },
+  "garch_params": {
+    "mu": 0.0470582924150449,
+    "omega": 0.01839937385373383,
+    "alpha": 0.08217550281325342,
+    "beta": 0.9052270273678179,
+    "gamma": 1.7592270073875604
+  },
+  "garch_converged": true,
+  "n_train_garch": 4075,
+  "spesifikasi": "README 'Spesifikasi Phase 6 (dikunci sebelum Phase 5)', model utama"
+}

@@ -90,3 +90,6 @@ Yang paling penting:
   dan langkah berikutnya. Semua 7 phase selesai.
 - Evaluasi model baru apa pun HANYA lewat forward test (prediksi yang dicatat sebelum hasilnya terjadi), bukan dengan
   menyetel ulang di 2020-2026.
+- Forward test (opsional C, 22 Okt 2026): `src/forward.py`, `scripts/daily_signal.py`, `models/frozen_2026-10-21.json`,
+  `reports/forward_test/log.csv` (append-only). Jangan menimpa model beku atau mengedit baris log. Sinyal hanya sah
+  di jendela setelah sesi AS final (21:30 UTC) dan sebelum BEI buka (02:00 UTC hari kerja berikutnya).
