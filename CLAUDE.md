@@ -85,5 +85,8 @@ Yang paling penting:
     melihat hasil, dan hanya boleh dilaporkan sebagai eksploratif berlabel.
 - DIKUNCI 23 Okt 2026 (README poin 9): return ex-date dengan dividen > 10% harga penutupan sebelumnya = NaN
   (harian & minggu yang memuatnya) untuk target saham; hasil tanpa aturan = sensitivitas.
-- Phase 7/7 (berikutnya): ringkasan portfolio + jalankan ulang pipeline untuk BBCA, BBRI, TLKM, PTBA, ASII
-  (`project.target_id`; Core & aturan sama, output di reports/targets/<id>/).
+- Phase 7/7: **selesai** (23 Okt 2026; `src/bigcap.py`, `notebooks/07_summary_bigcap.ipynb`, `reports/phase7/`,
+  `reports/targets/<id>/`). README sekarang dibuka dengan Executive summary (EN), Temuan utama, Keterbatasan,
+  dan langkah berikutnya. Semua 7 phase selesai.
+- Evaluasi model baru apa pun HANYA lewat forward test (prediksi yang dicatat sebelum hasilnya terjadi), bukan dengan
+  menyetel ulang di 2020-2026.

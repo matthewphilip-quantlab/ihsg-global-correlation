@@ -1,0 +1,6 @@
+,saham,nilai
+"paling sensitif ke rupiah (beta USD/IDR paling negatif, 2010-2019)",BBRI,-1.3024171182388355
+"paling sensitif ke EM (beta EEM terbesar, 2010-2019)",PTBA,0.6598004783700642
+paling asimetris vs EEM (asimetri berlebih terbesar),TLKM,0.2269964830702771
+paling dalam saat krisis (median drawdown),PTBA,-0.325617981619716
+paling responsif ke VIX (gamma GARCH-X in-sample),PTBA,1.1997874357823777

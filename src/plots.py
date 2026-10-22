@@ -305,3 +305,24 @@ def plot_calibration(cals: dict[str, pd.DataFrame], title: str):
     ax.legend(frameon=False, fontsize=9, labelcolor=INK_2, loc="upper left")
     fig.tight_layout()
     return fig
+
+
+def plot_bigcap_betas(table: pd.DataFrame, pairs: dict[str, tuple[str, str]], names: dict, title: str,
+                      period_labels: tuple[str, str] = ("2010-2019", "2020+")):
+    """Satu panel per faktor: beta tiap saham di dua periode (warna tetap per periode)."""
+    fig, axes = plt.subplots(1, len(pairs), figsize=(4.2 * len(pairs), 0.45 * len(table) + 1.8), sharey=True)
+    ids = list(table.index)
+    for ax, (label, cols) in zip(np.atleast_1d(axes), pairs.items()):
+        for color, col, off, lab in zip(SERIES, cols, (-0.12, 0.12), period_labels):
+            ax.scatter(table[col], np.arange(len(ids)) + off, s=48, color=color, edgecolor="white", linewidth=1.5,
+                       zorder=3, label=lab)
+        ax.axvline(0, color=INK_2, linewidth=0.8)
+        ax.set_yticks(range(len(ids)), [names.get(i, i) for i in ids])
+        _style(ax, label)
+        ax.title.set_fontsize(10)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        ax.grid(axis="y", visible=False)
+    np.atleast_1d(axes)[0].legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower left")
+    fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
+    fig.tight_layout()
+    return fig

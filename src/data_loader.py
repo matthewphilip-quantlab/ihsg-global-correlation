@@ -149,3 +149,48 @@ def close_panel(prices: dict[str, pd.DataFrame], id_by_ticker: dict[str, str]) -
         df = prices.get(ticker)
         cols[sid] = df["Close"] if df is not None and not df.empty else pd.Series(dtype=float)
     return pd.DataFrame(cols).sort_index()
+
+
+def download_actions(ticker: str, start: pd.Timestamp, end: pd.Timestamp | None = None) -> pd.DataFrame:
+    """Close tanpa penyesuaian dividen (sudah disesuaikan split oleh Yahoo) dan dividen tunai per ex-date."""
+    end_exclusive = (end + pd.Timedelta(days=1)).strftime("%Y-%m-%d") if end is not None else None
+    raw = yf.download(ticker, start=start.strftime("%Y-%m-%d"), end=end_exclusive, auto_adjust=False,
+                      actions=True, progress=False, threads=False)
+    if raw is None or raw.empty:
+        return pd.DataFrame(columns=["close_raw", "dividend"], index=pd.DatetimeIndex([], name="Date"), dtype=float)
+    if isinstance(raw.columns, pd.MultiIndex):
+        raw.columns = raw.columns.get_level_values(0)
+    idx = pd.DatetimeIndex(raw.index)
+    if idx.tz is not None:
+        idx = idx.tz_localize(None)
+    out = pd.DataFrame({"close_raw": raw["Close"].to_numpy(dtype=float),
+                        "dividend": raw["Dividends"].to_numpy(dtype=float) if "Dividends" in raw else 0.0},
+                       index=idx.normalize())
+    out.index.name = "Date"
+    return out[~out.index.duplicated(keep="last")].sort_index()
+
+
+def load_actions(tickers: list[str], start: str | pd.Timestamp, end: str | pd.Timestamp | None = None,
+                 refresh: bool = False, max_age_days: int = 7, cache_dir: Path = CACHE_DIR) -> dict[str, pd.DataFrame]:
+    """Seperti load_prices, untuk aksi korporasi (cache data/raw/<ticker>_actions.parquet, key manifest '<ticker>#actions')."""
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    start_ts = pd.Timestamp(start)
+    end_ts = pd.Timestamp(end) if end is not None else None
+    manifest = _read_manifest(cache_dir)
+    out = {}
+    for ticker in tickers:
+        key = f"{ticker}#actions"
+        path = cache_path(ticker, cache_dir).with_name(cache_path(ticker, cache_dir).stem + "_actions.parquet")
+        if not refresh and path.exists() and _cache_is_fresh(manifest.get(key), start_ts, end_ts, max_age_days):
+            df = pd.read_parquet(path)
+        else:
+            df = download_actions(ticker, start_ts, end_ts)
+            if not df.empty:
+                df.to_parquet(path)
+                manifest[key] = {"start": start_ts.strftime("%Y-%m-%d"),
+                                 "end": end_ts.strftime("%Y-%m-%d") if end_ts is not None else None,
+                                 "downloaded": date.today().isoformat(), "rows": int(len(df))}
+        out[ticker] = df.loc[start_ts:end_ts] if not df.empty else df
+    _write_manifest(cache_dir, manifest)
+    return out

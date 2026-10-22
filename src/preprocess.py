@@ -278,3 +278,39 @@ def save_processed(out_dir: Path, frames: dict[str, pd.DataFrame | pd.Series]) -
         (frame.to_frame() if isinstance(frame, pd.Series) else frame).to_parquet(p)
         paths.append(p)
     return paths
+
+
+# ---- Aturan dividen besar (README poin 9) ---------------------------------------------------------
+def large_dividend_days(actions: pd.DataFrame, frac: float) -> pd.DataFrame:
+    """Ex-date dengan dividen tunai > frac x close tanpa penyesuaian di hari bursa sebelumnya."""
+    c = actions["close_raw"].dropna()
+    div = actions["dividend"].reindex(c.index).fillna(0.0)
+    prev = c.shift(1)
+    ratio = div / prev
+    sel = ratio > frac
+    out = pd.DataFrame({"dividen": div[sel], "close_sebelumnya": prev[sel], "rasio": ratio[sel]})
+    out.index.name = "Date"
+    return out
+
+
+def mask_dividend_daily(daily: pd.DataFrame, dates: pd.DatetimeIndex, col: str = "r_target") -> pd.DataFrame:
+    """Panel pasangan harian: return target di ex-date dijadikan NaN."""
+    out = daily.copy()
+    out.loc[out["Date"].isin(pd.DatetimeIndex(dates)), col] = np.nan
+    return out
+
+
+def mask_dividend_weekly(weekly: pd.DataFrame, col: str, dates: pd.DatetimeIndex) -> pd.DataFrame:
+    """Panel mingguan W-FRI: return minggu yang memuat ex-date dijadikan NaN (kolom `col` saja)."""
+    out = weekly.copy()
+    weeks = pd.DatetimeIndex(dates).to_period("W-FRI").end_time.normalize()
+    out.loc[out.index.isin(weeks), col] = np.nan
+    return out
+
+
+def dividend_log_rows(days: pd.DataFrame, sid: str, ticker: str, frac: float) -> pd.DataFrame:
+    """Baris cleaning log untuk hari ex-date yang terkena aturan dividen besar (harga tidak diubah)."""
+    rows = days.reset_index().rename(columns={"close_sebelumnya": "close"})
+    rows["reason"] = [f"ex-date dividen besar ({r:.1%} > {frac:.0%}): return dijadikan NaN, harga tidak diubah"
+                      for r in days["rasio"]]
+    return rows.assign(id=sid, ticker=ticker).reindex(columns=LOG_COLS)

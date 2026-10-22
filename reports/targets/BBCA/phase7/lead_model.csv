@@ -1,0 +1,4 @@
+model,regresor,n,hac_lags,r2,adj_r2,tambahan_r2_vs_base,F_tambahan,p_tambahan
+EEM,r_EEM,2231,7,0.0719,0.0714,,,
+Δpremium,d_premium,2231,7,0.0542,0.0537,,,
+EEM + Δpremium,r_EEM + d_premium,2231,7,0.0772,0.0764,0.0054,8.6337,0.0033

@@ -1,0 +1,3 @@
+kondisi,mode,id,n_turun,n_naik,r_turun,r_naik,selisih,z_fisher,p_fisher,harapan_turun,harapan_naik,asimetri_berlebih,ci_lo_boot,ci_hi_boot,p_boot,p_fisher_bh,p_boot_bh
+sendiri,tanda,EEM,453,551,0.4173,0.2451,0.1723,3.0541,0.0023,0.2613,0.2685,0.1794,-0.0153,0.3276,0.068,0.0023,0.068
+sendiri,exceedance,EEM,102,102,0.5835,0.2483,0.3352,2.9137,0.0036,0.1961,0.1788,0.3179,-0.0924,0.5335,0.13,0.0036,0.13

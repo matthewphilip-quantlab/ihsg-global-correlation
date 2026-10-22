@@ -1,5 +1,63 @@
 # IHSG vs Pasar Global: Korelasi, Lead-Lag, dan Uji Sinyal
 
+## Executive summary
+
+**Question.** Which global markets, currencies, risk gauges and commodities move with Indonesia's IHSG? Does the link change in crises? Can markets that close after Jakarta predict IHSG's next day?
+
+**Data & method.**
+- Daily Yahoo Finance data, 2007 to Oct 2026, for IHSG and 10 drivers selected on 2010–2019 only.
+- Cleaning rules locked before results.
+- Correlations (static, asymmetric, rolling), HAC betas, lead-lag and Granger tests, an EIDO overnight premium, six crisis event studies, and quantile regression.
+- A pre-registered walk-forward out-of-sample test (2020–2026) with Diebold–Mariano tests and leakage placebos.
+
+**Key findings.**
+1. Regional and EM equities dominate: weekly correlation ≈ 0.53 with Singapore, MSCI EM and Malaysia; a ten-factor model explains R² = 0.43.
+2. A 1% rupiah depreciation coincides with −0.23% IHSG, other drivers held fixed. Day to day, though, the rupiah follows IHSG.
+3. New York closes lead IHSG by one day (EEM next-day correlation 0.38), but most of that reaction is priced at the open.
+4. Median crisis drawdown: −18%, versus −14% for Singapore and −10% for Malaysia. Correlations jump in sell-offs; only holding USD (+9.5%) or gold in rupiah (+10%) protected rupiah investors.
+5. The oil-shock hypothesis was not supported; an earlier "rising rupiah correlation" finding was a data artefact and was withdrawn.
+
+**Pre-registered verdict.**
+- **Direction of IHSG's next close: not predictable** beyond a naive guess under the locked loss (log loss, p = 0.77), despite a 58.7% vs 51.9% hit rate. The model is overconfident on extreme days.
+- **Volatility: VIX helps** out of sample (GARCH-X, p = 0.016).
+
+## Temuan utama (untuk investor)
+
+> Bukan rekomendasi investasi. Semua angka di bawah adalah **asosiasi historis**, kecuali yang ditandai **OOS** (lolos atau gagal uji out-of-sample yang dikunci sebelumnya). Detail ada di "Temuan rinci per phase".
+
+1. **IHSG bergerak paling dekat dengan pasar tetangga dan EM.** Korelasi mingguan dengan Straits Times, iShares MSCI EM, dan KLCI sekitar +0,53. Dengan seri lain dikendalikan: KLCI +1% ↔ IHSG +0,43%, STI +1% ↔ +0,30%, EEM +1% ↔ +0,28%. Sejak 2023 keterkaitan dengan Hang Seng melemah secara bertahap (tren, bukan kebetulan sesaat).
+2. **Rupiah penting, tetapi sebagai "pengikut".** Rupiah melemah 1% ↔ IHSG −0,23% di minggu yang sama. Secara harian, pergerakan IHSG justru mendahului rupiah. Jangan berharap kurs malam ini memberi petunjuk IHSG besok.
+3. **New York malam ini terlihat di IHSG besok**, terutama EEM, S&P 500, VIX, dan ETF Indonesia di New York (EIDO). Tetapi sebagian besar reaksinya sudah terjadi **di harga pembukaan**, sebelum investor sempat bertransaksi.
+4. **Saat krisis global, IHSG jatuh lebih dalam dari tetangganya:** median −18% vs Singapura −14% dan Malaysia −10%. Korelasi dengan pasar regional melonjak (STI +0,37 → +0,66), jadi diversifikasi regional paling sedikit membantu justru saat paling dibutuhkan.
+5. **Yang benar-benar melindungi investor rupiah saat IHSG jatuh** adalah memegang USD (+9,5%) atau emas dalam rupiah (+10,1%). Perlindungannya sebagian besar berasal dari pelemahan rupiah itu sendiri. Emas dalam USD dan Treasury AS tidak melindungi.
+6. **OOS: arah IHSG besok TIDAK bisa ditebak lebih baik dari tebakan naif** menurut uji yang dikunci (log loss, p = 0,77). Model memang menebak arah benar 58,7% vs 51,9%, tetapi terlalu yakin di hari-hari ekstrem. Ini hasil negatif yang jujur.
+7. **OOS: VIX membantu memprediksi gejolak IHSG.** VIX naik 10% semalam ↔ varians IHSG besok 14–18% lebih tinggi; lolos uji OOS (GARCH-X p = 0,016, HAR-X p = 0,014). Gunanya untuk mengatur ukuran posisi dan risiko, bukan arah.
+8. **Hipotesis yang tidak terbukti atau dicabut:**
+   - Lonjakan harga minyak (Brent) tidak terlihat menekan IHSG, termasuk di 2022.
+   - Kesan "korelasi rupiah–IHSG menguat dari 2010–2014 ke 2015–2019" ternyata artefak harga salah Yahoo di 2013, dan sudah dicabut.
+9. **Big cap (deskriptif):** BBRI paling sensitif ke rupiah, PTBA paling sensitif ke EM dan paling dalam saat krisis, TLKM paling asimetris (lebih ikut jatuh daripada ikut naik bersama EM). VIX menaikkan volatilitas in-sample di 4 dari 5 saham, tetapi tidak satu pun lolos uji OOS per saham.
+
+## Keterbatasan
+
+- **Sumber data:** Yahoo Finance bukan sumber resmi. Ditemukan harga salah (USD/IDR 2010–2013), hari bursa hilang (29 Sep 2008), baris basi ber-volume nol (±23 hari bursa per saham big cap), dan data Open yang tidak layak di 2009, 2020, 2022, dan 2023. Semua aturan cleaning dikunci sebelum hasil terlihat, tetapi tetap ada sisa risiko data.
+- **Hanya close-to-close.** Tanpa data Open dan intraday yang layak, pertanyaan "apakah sinyal masih tersisa setelah pembukaan" tidak bisa diuji dengan baik, dan backtest trading tidak realistis.
+- **Timing kurs:** IDR=X tutup di jam AS, bukan saat IHSG tutup, sehingga IHSG dalam USD memuat pergerakan kurs setelah Jakarta tutup.
+- **EIDO melacak MSCI Indonesia, bukan IHSG** (basis risk), dan harganya sudah termasuk dividen.
+- **Sebagian besar temuan adalah asosiasi in-sample**, dan banyak uji dijalankan. Koreksi Benjamini–Hochberg membantu, tetapi tidak menghapus risiko temuan kebetulan. Yang berstatus "terbukti" hanyalah hasil OOS yang dikunci.
+- **Jumlah krisis sedikit** (6 episode), dan pemilihan tanggal jangkar tetap mengandung penilaian. Episode Okt 2026 terpotong oleh akhir data.
+- **Big cap:** hanya 5 saham, dengan return yang disesuaikan dividen Yahoo. Ex-date dividen besar dibuang; total return yang dihitung sendiri belum diterapkan.
+- **Override Brent** dipilih dengan pengetahuan periode uji, dan selalu diberi label.
+
+## Apa yang akan saya lakukan berikutnya
+
+1. **Forward test yang jujur.** Membekukan model arah dan GARCH-X, lalu mencatat prediksi harian ke depan (`scripts/daily_signal.py`, `reports/forward_test/`). Ini satu-satunya bahan evaluasi bersih untuk versi model mana pun di masa depan.
+2. **Kalibrasi model arah sebagai spesifikasi BARU** yang dipra-registrasi (misalnya regularisasi atau batas probabilitas), lalu dievaluasi hanya pada data forward test. Bukan dengan menyetel ulang di 2020–2026.
+3. **Data yang lebih baik:** harga Open/intraday dari sumber resmi (BEI), kurs JISDOR sebagai pembanding IDR=X, dan data arus dana asing harian, untuk menguji tradeability dan jalur rupiah dengan benar.
+4. **Total return saham yang dihitung sendiri** dari Close tanpa penyesuaian dan dividen, untuk menggantikan aturan pembuangan ex-date.
+5. **Stretch goal yang sudah direncanakan** (eksploratif): PCA faktor regional, HMM regime, uji structural break, dan spillover Diebold–Yilmaz.
+
+## Latar belakang & pertanyaan riset
+
 Project portfolio data science / quant. Pertanyaan utamanya:
 
 1. Indeks, mata uang, sentimen, dan komoditas global mana yang hubungannya paling kuat dengan IHSG?
@@ -16,17 +74,18 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 |---|---|---|
 | 1/7 | Setup, data ingestion, data quality | Selesai (run data asli 21 Okt 2026) |
 | 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Selesai (21 Okt 2026); USD/IDR lolos uji ulang → driver |
-| 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan" |
-| 4/7 | Lead-lag & efek zona waktu (CCF, regresi lead, Granger, premium EIDO; in-sample 2010–2019) | Selesai (21 Okt 2026); lihat "Temuan" |
-| 5/7 | Rolling correlation & regime krisis (event study, quantile regression Brent, aset pelindung) | Selesai (23 Okt 2026); lihat "Temuan" |
-| 6/7 | Uji sinyal out-of-sample (arah & volatilitas, walk-forward 2020–sekarang) | Selesai (23 Okt 2026); lihat "Temuan" |
-| 7/7 | Ringkasan portfolio | Belum |
+| 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan rinci" |
+| 4/7 | Lead-lag & efek zona waktu (CCF, regresi lead, Granger, premium EIDO; in-sample 2010–2019) | Selesai (21 Okt 2026); lihat "Temuan rinci" |
+| 5/7 | Rolling correlation & regime krisis (event study, quantile regression Brent, aset pelindung) | Selesai (23 Okt 2026); lihat "Temuan rinci" |
+| 6/7 | Uji sinyal out-of-sample (arah & volatilitas, walk-forward 2020–sekarang) | Selesai (23 Okt 2026); lihat "Temuan rinci" |
+| 7/7 | Ringkasan portfolio + demonstrasi pipeline 5 big cap (target configurable) | Selesai (23 Okt 2026) |
 
 ## Struktur
 
 ```
 config/tickers.yaml        # satu-satunya tempat menambah / memindahkan seri
-src/                       # semua logika (config, data_loader, quality, preprocess, plots, ...)
+src/                       # semua logika: config, data_loader, quality, preprocess, analysis, leadlag,
+                           #   regime, oos, volatility, bigcap, plots
 notebooks/01-07_*.ipynb    # laporan berjalan; hanya memanggil fungsi dari src/
 reports/                   # hasil kecil yang di-commit (CSV, JSON keputusan); target lain di reports/targets/<id>/
 scripts/screening.py       # artefak beku: screening Core vs Nanti 2010-2019
@@ -249,7 +308,7 @@ Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) da
 
 **Stretch goal (tidak wajib, EKSPLORATIF):** PCA (faktor bersama), VAR/impulse response, HMM untuk regime, uji structural break (Bai–Perron), spillover Diebold–Yilmaz, dan LightGBM + SHAP. Hasilnya tidak dipakai untuk kesimpulan utama. Klaim prediktif dari teknik ini tetap harus lewat OOS 2020+, dan seleksinya tetap hanya dari 2010–2019.
 
-## Rencana untuk phase berikutnya
+## Rencana untuk phase lanjutan (arsip; semua sudah dikerjakan)
 
 Dicatat di akhir Phase 1 (21 Okt 2026) supaya tidak ditentukan setelah melihat hasil.
 
@@ -265,7 +324,7 @@ Dicatat di akhir Phase 1 (21 Okt 2026) supaya tidak ditentukan setelah melihat h
   - Batas episode ditentukan di Phase 5 dengan aturan yang sama untuk semua episode.
   - Data setelah episode masih sangat pendek saat dicatat, jadi kesimpulan apa pun bersifat awal.
 
-## Temuan
+## Temuan rinci per phase
 
 Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan bukan sebab-akibat**. Detail ada di `notebooks/03_static_correlation.ipynb` dan `reports/phase3/`.
 
@@ -372,6 +431,26 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
   - HAR-X vs HAR (mingguan, 353 minggu): QLIKE 2,592 vs 2,636, DM p = 0,014; MSE p = 0,078.
 - **Open-to-close (EKSPLORATIF; 81% hari OOS punya data Open valid):** hit rate 53,1% vs naif 46,7%, DM p = 0,55. Tidak ada bukti daya prediksi setelah harga pembukaan.
 - **Tradeability (sesuai pra-registrasi):** daya prediksi close-to-close tidak berarti dapat dieksploitasi. Sebagian besar reaksi terhadap kabar semalam sudah terjadi di gap pembukaan (Phase 4), dan uji open-to-close tidak menunjukkan sisa daya prediksi.
+
+**Phase 7, demonstrasi big cap (23 Okt 2026; deskriptif kecuali uji OOS volatilitas; bukan rekomendasi saham)**
+- Pipeline Phase 1–2 dan analisis inti dijalankan ulang untuk BBCA, BBRI, TLKM, PTBA, dan ASII lewat `project.target_id`. Core, aturan, dan periode sama; tidak ada seleksi ulang.
+
+| | BBCA | BBRI | TLKM | PTBA | ASII |
+|---|---|---|---|---|---|
+| Beta IHSG 2010–19 / 2020+ | 1,05 / 0,87 | 1,47 / 1,15 | 0,75 / 1,05 | 1,20 / 0,78 | 1,42 / 1,00 |
+| Beta USD/IDR 2010–19 / 2020+ | −0,79 / −0,83 | **−1,30** / −1,17 | −0,37 / −1,19 | −0,85 / −0,81 | −1,20 / −1,15 |
+| Beta EEM 2010–19 / 2020+ | 0,42 / 0,52 | 0,63 / 0,62 | 0,25 / 0,36 | **0,66** / 0,30 | 0,54 / 0,59 |
+| Korelasi vs EEM: turun / naik | 0,33 / 0,27 | 0,37 / 0,25 | 0,26 / 0,04 | 0,23 / 0,22 | 0,42 / 0,25 |
+| Asimetri berlebih (CI bootstrap) | +0,07 (−0,08; +0,23) | +0,13 (−0,01; +0,25) | **+0,23 (+0,07; +0,38)** | +0,02 (−0,13; +0,18) | +0,18 (−0,02; +0,33) |
+| Δpremium EIDO menambah lead di atas EEM (2010–19) | ya | ya | ya | tidak | ya |
+| Krisis: median drawdown / return +60 | −18,6% / −2,0% | −28,2% / −5,6% | −19,0% / −4,0% | **−32,6%** / 0,0% | −24,1% / −0,4% |
+| γ VIX GARCH-X in-sample (p LR) | 0,88 (<0,001) | 0,63 (0,007) | 0,41 (0,12) | **1,20** (<0,001) | 0,75 (<0,001) |
+| OOS 2020+: DM QLIKE p (GARCH-X vs GARCH) | 0,22 | 0,10 | 0,21 | 0,18 | 0,13 |
+
+- **Juara tiap dimensi:** paling sensitif ke rupiah = BBRI; ke EM = PTBA (tetapi turun tajam setelah 2020); paling asimetris = TLKM (satu-satunya yang CI-nya tidak memuat nol); paling dalam saat krisis = PTBA; paling responsif ke VIX = PTBA.
+- **VIX:** γ in-sample signifikan di 4 dari 5 saham, tetapi **tidak satu pun lolos uji OOS per saham** (semua selisih QLIKE negatif, p 0,10–0,22). Untuk IHSG sendiri uji yang sama lolos (p = 0,016).
+- **Aturan dividen besar** hanya mengenai PTBA (5 ex-date, semuanya 2020+: 2020, 2022, 2023, 2024, 2025; rasio 11–30%). Tanpa aturan ini, beta PTBA 2020+ bergeser ≤ 0,014, p DM GARCH-X bergeser 0,18 → 0,21, dan tidak ada "juara" yang berubah.
+- **Data:** ±82–85 baris basi ber-volume nol per saham diperlakukan sebagai libur (aturan Phase 2). 21–24 di antaranya jatuh di hari IHSG buka, terutama 2016–2019. Itu celah data Yahoo, bukan hari tanpa transaksi.
 
 ## Keterbatasan data
 

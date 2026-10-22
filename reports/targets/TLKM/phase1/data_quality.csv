@@ -1,0 +1,13 @@
+id,ticker,name,group,category,session,first_date,last_date,n_obs,min_obs_year,min_obs_year_at,max_gap_days,max_gap_end,pct_zero,n_large,n_bad_tick,status
+TLKM,TLKM.JK,Telkom Indonesia,target,stock,target,2007-01-02,2026-10-21,4857,236,2025,12,2025-04-08,12.067545304777596,0,0,OK
+STI,^STI,Straits Times,core,index,sync,2007-01-03,2026-10-21,4951,246,2011,6,2014-12-29,0.06060606060606061,0,0,OK
+KLCI,^KLSE,KLCI Malaysia,core,index,sync,2007-01-03,2026-10-21,4854,242,2018,6,2013-08-12,0.0618174325159695,0,0,OK
+EEM,EEM,iShares MSCI EM,core,etf,after,2007-01-03,2026-10-20,4981,250,2012,5,2012-10-31,0.6827309236947792,9,3,3 dugaan bad tick
+SPX,^GSPC,S&P 500,core,index,after,2007-01-03,2026-10-20,4981,250,2012,5,2012-10-31,0.040160642570281124,1,0,OK
+NIFTY,^NSEI,Nifty 50,core,index,after,2007-09-17,2026-10-21,4684,240,2014,6,2014-10-07,0.08541533205210335,3,0,mulai 2007-09-17
+HSI,^HSI,Hang Seng,core,index,sync,2007-01-02,2026-10-21,4875,243,2023,6,2007-04-10,0.0,4,1,1 dugaan bad tick
+VIX,^VIX,VIX,core,sentiment,after,2007-01-03,2026-10-21,4984,250,2012,5,2012-10-31,0.381296407786474,1,0,OK
+COPPER,HG=F,Tembaga,core,commodity,after,2007-01-01,2026-10-21,4983,250,2012,5,2012-10-31,0.5419510236852669,1,0,OK
+BRENT,BZ=F,Brent,core,commodity,after,2007-07-30,2026-10-21,4787,234,2009,17,2009-05-01,0.5432511491851233,2,0,mulai 2007-07-30; gap 17 hari s/d 2009-05-01
+USDIDR,IDR=X,USD/IDR,core,fx,after,2007-01-01,2026-10-21,5134,242,2008,26,2008-08-26,1.948178453146308,22,8,gap 26 hari s/d 2008-08-26; 8 dugaan bad tick
+EIDO,EIDO,iShares MSCI Indonesia,tools,etf,after,2010-05-07,2026-10-20,4139,250,2012,5,2012-10-31,1.1841469308844852,5,1,mulai 2010-05-07; 1 dugaan bad tick

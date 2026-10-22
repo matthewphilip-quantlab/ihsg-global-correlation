@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-10-23 01:02",
+  "target_id": "ASII",
+  "target_first_available": "2007-01-02",
+  "analysis_start": "2007-01-01",
+  "used_fallback": false,
+  "start_reason": "ASII.JK tersedia sejak 02 Jan 2007 dan 2007-2009 lengkap -> analisis mulai 01 Jan 2007 (GFC 2008 tercakup)",
+  "return_mode": "close_to_close",
+  "open_module_start_year": null,
+  "open_reason": "Kualitas Open tidak memadai (Open = Close kemarin 22.6% (batas 5.0%)) -> fallback ke close-to-close; keterbatasan dicatat di README",
+  "bad_ticks_per_series": {
+    "EEM": 3,
+    "EIDO": 1,
+    "HSI": 1,
+    "USDIDR": 8
+  },
+  "unavailable_series": []
+}

@@ -1,0 +1,5 @@
+model,variabel,beta,ci_lo,ci_hi,t_hac,p
+EEM,r_EEM,0.3148,0.2569,0.3727,10.6618,0.0
+Δpremium,d_premium,0.245,0.1932,0.2968,9.2695,0.0
+EEM + Δpremium,r_EEM,0.2385,0.1647,0.3123,6.3349,0.0
+EEM + Δpremium,d_premium,0.103,0.0343,0.1717,2.9383,0.0033

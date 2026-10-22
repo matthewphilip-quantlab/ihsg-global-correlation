@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-10-23 01:02",
+  "usdidr_retest": {
+    "status": "tidak dijalankan",
+    "passed": null,
+    "differs_from_old_rule": null,
+    "reason": "uji ulang hanya dijalankan untuk target JKSE (target aktif: TLKM)",
+    "note": "Status USD/IDR mengikuti keputusan di config/tickers.yaml."
+  },
+  "target_id": "TLKM",
+  "analysis_start": "2007-01-01",
+  "return_mode": "close_to_close",
+  "dividen_besar": []
+}

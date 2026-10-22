@@ -136,6 +136,13 @@ oos:
   har_weeks: [1, 4, 13]              # HAR-X mingguan: lag RV 1, 4, 13 minggu
   vix_id: VIX
 
+# Phase 7: demonstrasi pipeline big cap (target saham; Core, aturan, dan periode sama dengan IHSG)
+bigcap:
+  targets: [BBCA, BBRI, TLKM, PTBA, ASII]
+  factors: [USDIDR, EEM]             # beta satu faktor (+ IHSG = project.primary_target sebagai beta pasar)
+  asym_id: EEM                       # korelasi asimetris vs seri ini
+  lead_id: EEM                       # lead harian saham(t+1) ~ seri ini(t) + Δpremium EIDO(t)
+
 # Seri turunan: target dalam USD = target / USD/IDR (yang sudah dibersihkan). id = <target_id><suffix>
 target_usd:
   suffix: _USD
