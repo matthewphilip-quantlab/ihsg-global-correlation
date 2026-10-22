@@ -159,6 +159,12 @@ Return IHSG dipecah jadi gap pembukaan (close t → open t+1) dan intraday (open
   - Di ^JKSE, satu baris basi diperlakukan sebagai hari libur: 1 Des 2017 (libur Maulid Nabi, Close = kemarin, Volume 0).
   - Semua penghapusan, termasuk 13 hari USD/IDR, ada di `reports/phase2/cleaning_log.csv`.
 
+### 9. Aturan dividen besar (target saham; keputusan pemilik 23 Okt 2026, sebelum data big cap dianalisis)
+- **Aturan generik untuk semua target berkategori saham:** return pada hari ex-date dengan dividen tunai **> 10% dari harga penutupan sebelumnya** (harga tanpa penyesuaian) dijadikan **NaN** di analisis harian. Di analisis mingguan, return minggu yang memuat ex-date tersebut juga dijadikan NaN.
+- **Alasan:** penyesuaian dividen Yahoo membuat return ex-date terdistorsi saat dividennya sangat besar. Contohnya PTBA 26 Jun 2023: return adjusted +20,9%, padahal total return +14,7%.
+- **Pelaporan:** hasil tanpa aturan ini dilaporkan sebagai sensitivitas. Daftar hari yang terkena dicatat di cleaning log tiap target (`reports/targets/<id>/phase2/cleaning_log.csv`).
+- Harga tidak diubah; yang dibuang hanya return di hari tersebut.
+
 ## Rencana teknik per phase (dikunci)
 
 Dikunci 21 Okt 2026, setelah Phase 2 dan **sebelum analisis Phase 3–7 dijalankan**. Perubahan harus dicatat sebagai amandemen bertanggal beserta alasannya, seperti poin 4. Pertanyaan riset yang dirujuk:

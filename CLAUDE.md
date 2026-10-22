@@ -83,5 +83,7 @@ Yang paling penting:
   - GARCH buatan sendiri tervalidasi identik dengan arch saat gamma = 0. Rincian implementasi tercatat di README.
   - Jangan "memperbaiki" model arah (kalibrasi/regularisasi) lalu mengklaim OOS: itu spesifikasi baru setelah
     melihat hasil, dan hanya boleh dilaporkan sebagai eksploratif berlabel.
+- DIKUNCI 23 Okt 2026 (README poin 9): return ex-date dengan dividen > 10% harga penutupan sebelumnya = NaN
+  (harian & minggu yang memuatnya) untuk target saham; hasil tanpa aturan = sensitivitas.
 - Phase 7/7 (berikutnya): ringkasan portfolio + jalankan ulang pipeline untuk BBCA, BBRI, TLKM, PTBA, ASII
   (`project.target_id`; Core & aturan sama, output di reports/targets/<id>/).
