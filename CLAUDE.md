@@ -71,8 +71,9 @@ Yang paling penting:
   - Harga USD/IDR ber-`flag_stale_quote` dibuang di semua analisis harian; versi lengkap = sensitivitas.
   - Temuan ada di README "Temuan".
   - Hasil EIDO: Engle-Granger konstanta p = 0,10 (tidak terkointegrasi menurut aturan), sehingga yang dipakai
-    Δpremium. Versi tren/Johansen menunjukkan stasioner di sekitar tren (dividen EIDO); ini terbuka untuk
-    keputusan pemilik sebelum fitur Phase 6 ditetapkan.
+    Δpremium. DIPUTUSKAN (23 Okt): Δpremium = fitur utama; z-spread versi tren hanya sensitivitas berlabel di Phase 6.
+- DIKUNCI 23 Okt 2026: README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)" (fitur, target, OOS, metrik, loss DM,
+  peringatan tradeability) dan "Aturan Phase 5" (deskriptif; tidak boleh mengubah spesifikasi Phase 6).
 - Phase 5/7 (berikutnya), sesuai rencana yang dikunci:
   - rolling correlation 52 minggu / 250 hari
   - event study (jangkar & aturan di README; Okt 2026 hanya deskriptif)

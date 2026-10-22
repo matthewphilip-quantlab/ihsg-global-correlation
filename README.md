@@ -196,6 +196,30 @@ Dikunci 21 Okt 2026, setelah Phase 2 dan **sebelum analisis Phase 3–7 dijalank
 
 **Phase 6, ditulis eksplisit:** tanpa data Open yang layak, **backtest trading tidak realistis**. Sinyal baru bisa dieksekusi di harga pembukaan, sedangkan gap pembukaan tidak bisa diukur. Karena itu hasil Phase 6 adalah **bukti statistik daya prediksi, bukan klaim return**.
 
+### Spesifikasi Phase 6 (dikunci sebelum Phase 5)
+
+Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) dan **sebelum** analisis lead-lag apa pun dijalankan pada data 2020+. Spesifikasi ini **menggantikan** baris Phase 6 di tabel di atas kalau ada perbedaan: baseline, set fitur, dan loss untuk Diebold–Mariano.
+
+- **OOS:** 2020-01-01 s/d data terakhir. Walk-forward dengan expanding window mulai 2010 dan refit bulanan. **Tidak ada tuning hyperparameter yang memakai data OOS.** Kalau regularisasi logit perlu dipilih, pemilihannya hanya dari data latih di setiap titik refit.
+- **Target arah:** tanda return close-to-close IHSG(t+1).
+- **Model utama:** 4 fitur yang semuanya sudah diketahui setelah IHSG tutup di hari t, ditambah satu kontrol.
+  - Fitur: return EEM(t), return S&P 500(t), perubahan log VIX(t), dan **Δpremium EIDO(t)**.
+  - Kontrol: return IHSG(t).
+- **Model sensitivitas:**
+  - Semua seri Core sesi "after" yang Granger-signifikan di Phase 4: EEM, S&P 500, Nifty, VIX, Tembaga, dan Brent (Brent tetap berlabel "dipilih dengan pengetahuan periode uji"). Kontrolnya sama dengan model utama, yaitu IHSG(t).
+  - **Rupiah tidak dipakai sebagai fitur** karena tidak mendahului IHSG (Phase 4: justru IHSG yang mendahului rupiah).
+  - **z-score spread EIDO versi tren** (keputusan A) boleh diuji sebagai sensitivitas berlabel **"spesifikasi dipilih setelah melihat hasil Phase 4"**. Δpremium tetap fitur utama.
+- **Model:** baseline naif (frekuensi hari naik historis di data latih, sebagai probabilitas) vs logistic regression. LightGBM tetap stretch goal.
+- **Metrik arah:** hit rate, log loss, Brier, AUC. **Uji Diebold–Mariano vs baseline dengan loss = log loss.**
+- **Volatilitas:** GARCH-X dan HAR-X dengan VIX(t) vs GARCH dan HAR tanpa VIX. Metrik QLIKE dan MSE, dengan uji Diebold–Mariano.
+- **Peringatan tradeability (ditulis sebelum hasil OOS):**
+  - Phase 4 menunjukkan bahwa sebagian besar reaksi IHSG terhadap kabar semalam terjadi di **gap pembukaan**. Karena itu, daya prediksi close-to-close di Phase 6 **TIDAK berarti dapat dieksploitasi**.
+  - Kalau data Open 2020+ memungkinkan (setelah hari Open = Close kemarin dibuang), prediksi untuk return **open-to-close** juga dilaporkan sebagai uji **EKSPLORATIF**.
+
+### Aturan Phase 5 (dikunci sebelum Phase 5)
+- Analisis Phase 5 boleh memakai seluruh periode (2007–sekarang), tetapi sifatnya **DESKRIPTIF**.
+- **Tidak ada temuan Phase 5 yang boleh mengubah Spesifikasi Phase 6 di atas.** Keputusan pemilik, 23 Okt 2026.
+
 **Stretch goal (tidak wajib, EKSPLORATIF):** PCA (faktor bersama), VAR/impulse response, HMM untuk regime, uji structural break (Bai–Perron), spillover Diebold–Yilmaz, dan LightGBM + SHAP. Hasilnya tidak dipakai untuk kesimpulan utama. Klaim prediktif dari teknik ini tetap harus lewat OOS 2020+, dan seleksinya tetap hanya dari 2010–2019.
 
 ## Rencana untuk phase berikutnya
@@ -253,6 +277,7 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
 - **EIDO (sinyal semalam):**
   - Return EIDO malam ini saja menjelaskan R² 0,12 dari return IHSG besok. Δpremium (bagian pergerakan EIDO yang belum ada di close IHSG) menjelaskan R² 0,12.
   - Keduanya **menambah informasi di atas S&P 500 dan EEM**: tambahan R² +0,014 (EIDO) dan +0,022 (Δpremium), uji Wald HAC p < 10⁻⁵. Δpremium +1% ↔ IHSG besok +0,14%, setelah S&P 500 dan EEM dikendalikan.
+- **Keputusan fitur EIDO (pemilik, 23 Okt 2026):** Δpremium tetap fitur utama sesuai aturan. z-score spread versi tren boleh diuji di Phase 6 hanya sebagai sensitivitas berlabel "spesifikasi dipilih setelah melihat hasil Phase 4".
 - **Kointegrasi EIDO vs IHSG dalam USD bergantung spesifikasi:**
   - Aturan utama, Engle–Granger dengan konstanta: p = 0,10, jadi **tidak terkointegrasi** pada α 5%. Sesuai rencana, yang dipakai adalah Δpremium, bukan z-score spread.
   - Engle–Granger dengan tren (p < 10⁻⁵), Johansen, dan ADF premium mentah (p = 0,035) menunjukkan spread stasioner di sekitar tren. Tren itu wajar: harga EIDO di Yahoo sudah disesuaikan dividen, sedangkan IHSG indeks harga. Half-life spread versi tren sekitar 3,3 hari bursa (informasi saja).
