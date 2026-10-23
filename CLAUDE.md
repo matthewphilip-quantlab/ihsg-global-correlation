@@ -96,3 +96,10 @@ Yang paling penting:
 - Forward test DIKUNCI (23 Okt 2026 WIB): evaluasi pertama setelah 250 baris valid; DM log loss vs baseline beku
   (models/frozen_2026-10-21_pembanding.json) & QLIKE vs GARCH tanpa VIX; dilaporkan apa pun hasilnya; versi model baru
   = log terpisah. Jadwal launchd Senin-Jumat 09:15 Melbourne (scripts/launchd/forward_test.sh). Jangan commit log otomatis.
+- Lampiran Teknis PDF (23 Okt 2026 WIB): `scripts/build_notebook_report.py` + `src/report.py`. Ringkasan, BUKAN analisis baru:
+  - semua angka dibaca dari reports/ saat build dan dicek silang ke README;
+  - grafik dibuat ulang dengan src/plots.py;
+  - sel notebook yang dipakai bertag "report"; sel baru bertag "report-standalone" dijalankan sendiri lewat
+    `--update-notebooks`, yang juga memverifikasi lewat hash bahwa output sel lama tidak berubah;
+  - JANGAN menjalankan ulang notebook 01/02/05/07 penuh: cache data/raw sudah diperbarui daily_signal.py.
+

@@ -7,6 +7,16 @@ from src.config import sanity_ref  # noqa: E402
 from tests.conftest import make_ohlc, random_walk  # noqa: E402
 
 
+import matplotlib.pyplot as plt  # noqa: E402
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _close_figures():
+    yield
+    plt.close("all")
+
+
 def test_all_phase1_plots_render(cfg):
     s = random_walk(start="2007-01-01", end="2012-12-31", level=2000)
     ref = sanity_ref(cfg)
@@ -64,3 +74,25 @@ def test_phase6_plot_renders():
     import pandas as pd
     c = pd.DataFrame({"p_rata": [0.4, 0.5, 0.6], "frekuensi_naik": [0.42, 0.5, 0.63], "n": [10, 10, 10]})
     assert plots.plot_calibration({"a": c, "b": c * 0.98}, "tes") is not None
+
+
+def test_report_plots_render():
+    import numpy as np
+    import pandas as pd
+    rng = np.random.default_rng(0)
+    counts = pd.DataFrame(rng.integers(200, 260, (3, 5)), index=list("ABC"), columns=range(2010, 2015))
+    counts.iloc[0, 0] = np.nan
+    assert plots.plot_availability(counts, "tes") is not None
+    r = pd.Series(rng.standard_t(3, 2000) / 100, index=pd.bdate_range("2015-01-01", periods=2000))
+    assert plots.plot_return_distribution(r, "tes") is not None
+    coef = pd.DataFrame({"beta": [0.3, -0.1], "ci_lo": [0.1, -0.2], "ci_hi": [0.5, 0.0]}, index=["A", "B"])
+    assert plots.plot_beta_forest(coef, {}, "tes", single=pd.DataFrame({"beta_1f": [0.4, 0.3]}, index=["A", "B"])) is not None
+    assert plots.plot_premium(r.cumsum(), "tes") is not None
+    assert plots.plot_haven_bars(pd.Series({"A": 0.1, "B": -0.05}), {}, "tes", highlight="B") is not None
+    refits = pd.date_range("2020-01-01", "2022-12-01", freq="MS")
+    assert plots.plot_walkforward_scheme(refits, "2010-01-01", "tes") is not None
+    vf = pd.DataFrame({"r2": r.values ** 2, "s2_vix": 1e-4, "s2_tanpa_vix": 1.1e-4}, index=r.index)
+    assert plots.plot_vol_forecast(vf, "tes") is not None
+    plac = pd.DataFrame({"selisih_log_loss": rng.normal(0, 0.003, 10), "hit_rate": rng.uniform(0.5, 0.55, 10)})
+    assert plots.plot_placebo(plac, {"selisih_log_loss": -0.003, "hit_rate": 0.58}, "tes") is not None
+    assert plots.plot_bigcap_drawdown(pd.Series({"A": -0.2, "B": -0.3}), {}, "tes", reference=("IHSG", -0.18)) is not None

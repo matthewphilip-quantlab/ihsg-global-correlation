@@ -12,6 +12,8 @@ dependencies:
   - scipy
   - statsmodels      # Phase 3-6: regresi HAC, Granger, kointegrasi, quantile regression, logit
   - arch-py          # Phase 6: GARCH (paket conda-forge untuk `import arch`)
+  - reportlab        # Lampiran Teknis PDF (scripts/build_notebook_report.py)
+  - pypdfium2        # render halaman PDF ke PNG untuk pemeriksaan visual
   - jupyter
   - ipykernel
   - pytest

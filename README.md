@@ -21,6 +21,8 @@
 - **Direction of IHSG's next close: not predictable** beyond a naive guess under the locked loss (log loss, p = 0.77), despite a 58.7% vs 51.9% hit rate (overconfident on extreme days).
 - **Volatility: VIX helps** out of sample (GARCH-X, p = 0.016).
 
+> **Lampiran Teknis (PDF):** [reports/Lampiran_Teknis_Notebook.pdf](reports/Lampiran_Teknis_Notebook.pdf) berisi ringkasan 20 halaman notebook 01–07: poin penting, grafik, hasil kunci, potongan kode inti, dan aturan yang dikunci per phase. Tidak ada analisis baru di dalamnya. Dibangun ulang dengan `python scripts/build_notebook_report.py`.
+
 ## Temuan utama (untuk investor)
 
 > Bukan rekomendasi investasi. Semua angka di bawah adalah **asosiasi historis**, kecuali yang ditandai **OOS** (lolos atau gagal uji out-of-sample yang dikunci sebelumnya). Detail ada di "Temuan rinci per phase".
@@ -152,6 +154,7 @@ reports/                   # hasil kecil yang di-commit (CSV, JSON keputusan); t
 scripts/screening.py       # artefak beku: screening Core vs Nanti 2010-2019
 scripts/daily_signal.py    # forward test harian dengan model beku (lihat "Forward test")
 scripts/launchd/           # pasang/copot jadwal launchd forward test
+scripts/build_notebook_report.py  # Lampiran Teknis PDF (reports/Lampiran_Teknis_Notebook.pdf) dari reports/ & data/processed
 logs/                      # log lokal run launchd, tidak di-commit
 models/                    # model beku (JSON) untuk forward test; tidak boleh ditimpa
 tests/                     # pytest dengan data sintetis (tanpa internet)

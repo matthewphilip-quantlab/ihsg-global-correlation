@@ -260,9 +260,16 @@ def plot_event_paths(paths: dict[str, pd.DataFrame], names: dict, title: str, nc
                     label=names.get(sid, sid))
         _style(ax, f"{ep}" + (f" ({notes[ep]})" if notes and ep in notes else ""))
         ax.title.set_fontsize(10)
-    for ax in list(axes.flat)[len(eps):]:
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    spare = list(axes.flat)[len(eps):]
+    for ax in spare:
         ax.set_visible(False)
-    axes.flat[0].legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower left")
+    if spare:                                   # legenda di slot panel kosong supaya tidak menimpa data
+        spare[0].set_visible(True)
+        spare[0].axis("off")
+        spare[0].legend(handles, labels, frameon=False, fontsize=9, labelcolor=INK_2, loc="center")
+    else:
+        fig.legend(handles, labels, frameon=False, fontsize=8, labelcolor=INK_2, loc="lower right")
     fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
     fig.supxlabel("Hari bursa sejak jangkar", fontsize=9, color=INK_2)
     fig.tight_layout()
@@ -324,5 +331,189 @@ def plot_bigcap_betas(table: pd.DataFrame, pairs: dict[str, tuple[str, str]], na
         ax.grid(axis="y", visible=False)
     np.atleast_1d(axes)[0].legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower left")
     fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
+    fig.tight_layout()
+    return fig
+
+
+# ---- Grafik tambahan untuk Lampiran Teknis (hanya menampilkan hasil yang sudah ada) ----------------------
+SEQUENTIAL = ["#f0efec", "#cde2fb", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"]
+
+
+def plot_availability(counts: pd.DataFrame, title: str, expected: int = 245):
+    """Jumlah hari berharga per seri per tahun (baris = seri, kolom = tahun), skala satu warna."""
+    from matplotlib.colors import LinearSegmentedColormap
+    cmap = LinearSegmentedColormap.from_list("seq", SEQUENTIAL)
+    fig, ax = plt.subplots(figsize=(11, 0.42 * len(counts) + 1.6))
+    im = ax.imshow(counts.to_numpy(dtype=float), cmap=cmap, vmin=0, vmax=max(expected + 20, counts.max().max()), aspect="auto")
+    ax.set_xticks(range(counts.shape[1]), [str(c) for c in counts.columns], rotation=90, fontsize=8, color=INK_2)
+    ax.set_yticks(range(counts.shape[0]), counts.index, fontsize=9, color=INK_2)
+    for i in range(counts.shape[0]):
+        for j in range(counts.shape[1]):
+            v = counts.iat[i, j]
+            ax.text(j, i, "" if pd.isna(v) else f"{int(v)}", ha="center", va="center", fontsize=6.5,
+                    color="white" if v > 0.6 * expected else INK)
+    for side in ax.spines.values():
+        side.set_visible(False)
+    ax.set_title(title, loc="left", fontsize=12, color=INK, pad=10)
+    cb = fig.colorbar(im, ax=ax, fraction=0.03, pad=0.01)
+    cb.ax.tick_params(labelsize=8, colors=INK_2)
+    cb.outline.set_visible(False)
+    fig.tight_layout()
+    return fig
+
+
+def plot_return_distribution(r: pd.Series, title: str):
+    """Histogram return harian (dengan kurva normal bermean & sd sama) dan QQ plot terhadap normal."""
+    from scipy import stats
+    r = r.dropna()
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(11, 4))
+    a1.hist(r, bins=120, density=True, color=SERIES[0], alpha=0.85, edgecolor="white", linewidth=0.3, label="Return harian")
+    x = np.linspace(r.min(), r.max(), 400)
+    a1.plot(x, stats.norm.pdf(x, r.mean(), r.std()), color=SERIES[1], linewidth=2, label="Normal (mean & sd sama)")
+    a1.set_yscale("log")
+    a1.set_ylim(1e-3, None)
+    _style(a1, "Distribusi (skala log)", "Densitas")
+    a1.legend(frameon=False, fontsize=8, labelcolor=INK_2)
+    (osm, osr), (slope, icpt, _) = stats.probplot(r, dist="norm")
+    a2.scatter(osm, osr, s=6, color=SERIES[0], alpha=0.6, linewidths=0)
+    a2.plot(osm, slope * osm + icpt, color=SERIES[1], linewidth=1.5, label="Garis normal")
+    a2.set_xlabel("Kuantil teoretis normal", color=INK_2)
+    _style(a2, "QQ plot vs normal", "Kuantil sampel")
+    a2.legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="upper left")
+    fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
+    fig.tight_layout()
+    return fig
+
+
+def plot_beta_forest(coef: pd.DataFrame, names: dict, title: str, single: pd.DataFrame | None = None):
+    """Beta multi-faktor dengan CI 95% (dan beta satu faktor sebagai pembanding, kalau ada)."""
+    c = coef.sort_values("beta")
+    y = np.arange(len(c))
+    fig, ax = plt.subplots(figsize=(9, 0.5 * len(c) + 1.5))
+    ax.hlines(y, c["ci_lo"], c["ci_hi"], color=SERIES[0], linewidth=2)
+    ax.scatter(c["beta"], y, s=48, color=SERIES[0], edgecolor="white", linewidth=1.5, zorder=3, label="Multi-faktor (CI 95% HAC)")
+    if single is not None:
+        s = single.reindex(c.index)
+        ax.scatter(s["beta_1f"], y + 0.22, s=36, marker="D", color=SERIES[1], edgecolor="white", linewidth=1.2,
+                   zorder=3, label="Satu faktor")
+    ax.axvline(0, color=INK_2, linewidth=0.8)
+    ax.set_yticks(y, [names.get(i, i) for i in c.index])
+    _style(ax, title)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Beta (perubahan % IHSG per 1% perubahan seri, mingguan)", color=INK_2)
+    ax.legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower right")
+    fig.tight_layout()
+    return fig
+
+
+def plot_premium(premium: pd.Series, title: str):
+    """Level premium log EIDO - log IHSG dalam USD."""
+    fig, ax = plt.subplots(figsize=(10, 3.4))
+    ax.plot(premium.index, premium.values, color=SERIES[0], linewidth=1.2)
+    _style(ax, title, "log EIDO − log IHSG(USD)")
+    fig.tight_layout()
+    return fig
+
+
+def plot_haven_bars(values: pd.Series, names: dict, title: str, highlight: str | None = None):
+    """Batang horizontal perubahan (%) per aset; batang `highlight` diberi warna kedua."""
+    v = values.sort_values()
+    fig, ax = plt.subplots(figsize=(8, 0.5 * len(v) + 1.3))
+    colors = [SERIES[1] if i == highlight else SERIES[0] for i in v.index]
+    ax.barh(range(len(v)), v.values * 100, color=colors, height=0.6)
+    for k, x in enumerate(v.values * 100):
+        ax.text(x + (0.4 if x >= 0 else -0.4), k, f"{x:+.1f}%", va="center", ha="left" if x >= 0 else "right",
+                fontsize=8, color=INK)
+    ax.axvline(0, color=INK_2, linewidth=0.8)
+    ax.set_yticks(range(len(v)), [names.get(i, i) for i in v.index])
+    lim = max(abs(v.values * 100)) * 1.35
+    ax.set_xlim(-lim, lim)
+    _style(ax, title)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Median perubahan (%)", color=INK_2)
+    fig.tight_layout()
+    return fig
+
+
+def plot_walkforward_scheme(refits: pd.DatetimeIndex, train_start: str, title: str, every: int = 12):
+    """Skema walk-forward: tiap baris = satu titik refit; batang latih (expanding) dan bulan uji."""
+    import matplotlib.dates as md
+    r = pd.DatetimeIndex(sorted(set(refits)))
+    show = list(r[::every]) + ([r[-1]] if r[-1] not in r[::every] else [])
+    fig, ax = plt.subplots(figsize=(10, 0.42 * len(show) + 1.4))
+    t0 = pd.Timestamp(train_start)
+    for k, m0 in enumerate(show):
+        m1 = m0 + pd.offsets.MonthBegin(1)
+        ax.barh(k, (m0 - t0).days, left=md.date2num(t0), height=0.55, color=SERIES[0], alpha=0.35)
+        ax.barh(k, (m1 - m0).days, left=md.date2num(m0), height=0.55, color=SERIES[1])
+    ax.set_yticks(range(len(show)), [f"refit {m:%b %Y}" for m in show], fontsize=8)
+    ax.invert_yaxis()
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter(md.DateFormatter("%Y"))
+    from matplotlib.patches import Patch
+    ax.legend(handles=[Patch(color=SERIES[0], alpha=0.35, label="Data latih (expanding sejak 2010)"),
+                       Patch(color=SERIES[1], label="Bulan uji (prediksi OOS)")],
+              frameon=False, fontsize=8, labelcolor=INK_2, loc="upper left", bbox_to_anchor=(0, -0.07), ncol=2)
+    _style(ax, title)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    fig.tight_layout()
+    return fig
+
+
+def plot_vol_forecast(df: pd.DataFrame, title: str, start: str | None = None):
+    """|return| harian realisasi vs prakiraan sd GARCH-X dan GARCH tanpa VIX (OOS)."""
+    d = df.loc[start:]
+    fig, ax = plt.subplots(figsize=(10, 3.8))
+    ax.bar(d.index, np.sqrt(d["r2"]), width=1.0, color=GRID, label="|return| realisasi")
+    ax.plot(d.index, np.sqrt(d["s2_tanpa_vix"]), color=SERIES[0], linewidth=1.1, label="GARCH tanpa VIX (prakiraan sd)")
+    ax.plot(d.index, np.sqrt(d["s2_vix"]), color=SERIES[1], linewidth=1.1, label="GARCH-X dengan VIX (prakiraan sd)")
+    _style(ax, title, "% per hari")
+    ax.legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="upper right")
+    fig.tight_layout()
+    return fig
+
+
+def plot_placebo(placebo: pd.DataFrame, real: dict, title: str):
+    """Hasil uji placebo target acak (titik) vs model asli (garis), untuk selisih log loss dan hit rate."""
+    fig, axes = plt.subplots(1, 2, figsize=(10, 2.8))
+    for ax, (col, lab, fmt) in zip(axes, [("selisih_log_loss", "Selisih log loss vs naif (negatif = lebih baik)", "{:+.4f}"),
+                                          ("hit_rate", "Hit rate", "{:.1%}")]):
+        rng = np.random.default_rng(0)
+        ax.scatter(placebo[col], rng.uniform(-0.2, 0.2, len(placebo)), s=40, color=SERIES[0], edgecolor="white",
+                   linewidth=1.2, label="Placebo (target diacak)")
+        ax.axvline(real[col], color=SERIES[1], linewidth=2, label="Model asli")
+        ax.text(real[col], 0.3, " " + fmt.format(real[col]), color=INK, fontsize=8, va="bottom")
+        ax.set_ylim(-0.5, 0.6)
+        ax.set_yticks([])
+        _style(ax, lab)
+        ax.title.set_fontsize(10)
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        ax.grid(axis="y", visible=False)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, fontsize=8, labelcolor=INK_2, loc="lower center", ncol=2)
+    fig.suptitle(title, x=0.01, ha="left", fontsize=12, color=INK)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
+    return fig
+
+
+def plot_bigcap_drawdown(values: pd.Series, names: dict, title: str, reference: tuple[str, float] | None = None):
+    """Median drawdown krisis per saham (batang), dengan garis referensi (mis. IHSG)."""
+    v = values.sort_values(ascending=False)
+    fig, ax = plt.subplots(figsize=(8, 0.5 * len(v) + 1.4))
+    ax.barh(range(len(v)), v.values * 100, color=SERIES[0], height=0.6)
+    for k, x in enumerate(v.values * 100):
+        ax.text(-0.6, k, f"{x:.1f}%", va="center", ha="right", fontsize=8, color="white")
+    if reference is not None:
+        ax.axvline(reference[1] * 100, color=SERIES[1], linewidth=2, linestyle="--", label=f"{reference[0]} {reference[1]:.1%}")
+        ax.legend(frameon=False, fontsize=8, labelcolor=INK_2, loc="lower left")
+    ax.set_yticks(range(len(v)), [names.get(i, i) for i in v.index])
+    ax.set_xlim(min(v.values * 100) * 1.25, 0)
+    _style(ax, title)
+    ax.grid(axis="x", color=GRID, linewidth=0.8)
+    ax.grid(axis="y", visible=False)
+    ax.set_xlabel("Median drawdown maksimum di jendela krisis (%)", color=INK_2)
     fig.tight_layout()
     return fig
