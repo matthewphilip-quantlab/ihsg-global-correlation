@@ -71,21 +71,21 @@ Yang paling penting:
   - Harga USD/IDR ber-`flag_stale_quote` dibuang di semua analisis harian; versi lengkap = sensitivitas.
   - Temuan ada di README "Temuan".
   - Hasil EIDO: Engle-Granger konstanta p = 0,10 (tidak terkointegrasi menurut aturan), sehingga yang dipakai
-    Δpremium. DIPUTUSKAN (23 Okt): Δpremium = fitur utama; z-spread versi tren hanya sensitivitas berlabel di Phase 6.
-- DIKUNCI 23 Okt 2026: README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)" (fitur, target, OOS, metrik, loss DM,
+    Δpremium. DIPUTUSKAN (22 Okt): Δpremium = fitur utama; z-spread versi tren hanya sensitivitas berlabel di Phase 6.
+- DIKUNCI 22 Okt 2026: README "Spesifikasi Phase 6 (dikunci sebelum Phase 5)" (fitur, target, OOS, metrik, loss DM,
   peringatan tradeability) dan "Aturan Phase 5" (deskriptif; tidak boleh mengubah spesifikasi Phase 6).
-- Phase 5/7: **selesai** (23 Okt 2026; `src/regime.py`, `notebooks/05_regime_crisis.ipynb`, `reports/phase5/`).
+- Phase 5/7: **selesai** (22 Okt 2026; `src/regime.py`, `notebooks/05_regime_crisis.ipynb`, `reports/phase5/`).
   - Deskriptif; temuan di README "Temuan". Parameter di `regime:` pada tickers.yaml.
   - Emas, DXY, dan ^TNX diambil dari blok `nanti` hanya untuk analisis; Core tidak berubah.
-- Phase 6/7: **selesai** (23 Okt 2026; `src/oos.py`, `src/volatility.py`, `notebooks/06_oos_test.ipynb`, `reports/phase6/`).
+- Phase 6/7: **selesai** (22 Okt 2026; `src/oos.py`, `src/volatility.py`, `notebooks/06_oos_test.ipynb`, `reports/phase6/`).
   - Arah: hit rate 58,7% vs 51,9%, tetapi uji yang dikunci (DM log loss) p = 0,77 -> tidak terbukti; model terlalu yakin
     di hari ekstrem. Volatilitas: VIX membantu (GARCH-X DM QLIKE p = 0,016; HAR-X p = 0,014).
   - GARCH buatan sendiri tervalidasi identik dengan arch saat gamma = 0. Rincian implementasi tercatat di README.
   - Jangan "memperbaiki" model arah (kalibrasi/regularisasi) lalu mengklaim OOS: itu spesifikasi baru setelah
     melihat hasil, dan hanya boleh dilaporkan sebagai eksploratif berlabel.
-- DIKUNCI 23 Okt 2026 (README poin 9): return ex-date dengan dividen > 10% harga penutupan sebelumnya = NaN
+- DIKUNCI 22 Okt 2026 (README poin 9): return ex-date dengan dividen > 10% harga penutupan sebelumnya = NaN
   (harian & minggu yang memuatnya) untuk target saham; hasil tanpa aturan = sensitivitas.
-- Phase 7/7: **selesai** (23 Okt 2026; `src/bigcap.py`, `notebooks/07_summary_bigcap.ipynb`, `reports/phase7/`,
+- Phase 7/7: **selesai** (22 Okt 2026; `src/bigcap.py`, `notebooks/07_summary_bigcap.ipynb`, `reports/phase7/`,
   `reports/targets/<id>/`). README sekarang dibuka dengan Executive summary (EN), Temuan utama, Keterbatasan,
   dan langkah berikutnya. Semua 7 phase selesai.
 - Evaluasi model baru apa pun HANYA lewat forward test (prediksi yang dicatat sebelum hasilnya terjadi), bukan dengan
@@ -93,3 +93,6 @@ Yang paling penting:
 - Forward test (opsional C, 22 Okt 2026): `src/forward.py`, `scripts/daily_signal.py`, `models/frozen_2026-10-21.json`,
   `reports/forward_test/log.csv` (append-only). Jangan menimpa model beku atau mengedit baris log. Sinyal hanya sah
   di jendela setelah sesi AS final (21:30 UTC) dan sebelum BEI buka (02:00 UTC hari kerja berikutnya).
+- Forward test DIKUNCI (23 Okt 2026 WIB): evaluasi pertama setelah 250 baris valid; DM log loss vs baseline beku
+  (models/frozen_2026-10-21_pembanding.json) & QLIKE vs GARCH tanpa VIX; dilaporkan apa pun hasilnya; versi model baru
+  = log terpisah. Jadwal launchd Senin-Jumat 09:15 Melbourne (scripts/launchd/forward_test.sh). Jangan commit log otomatis.

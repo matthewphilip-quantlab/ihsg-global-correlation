@@ -5,20 +5,20 @@
 **Question.** Which global markets, currencies, risk gauges and commodities move with Indonesia's IHSG? Does the link change in crises? Can markets that close after Jakarta predict IHSG's next day?
 
 **Data & method.**
-- Daily Yahoo Finance data, 2007 to Oct 2026, for IHSG and 10 drivers selected on 2010–2019 only.
+- Daily Yahoo Finance data, 2007–Oct 2026: IHSG and 10 drivers selected on 2010–2019 only.
 - Cleaning rules locked before results.
-- Correlations (static, asymmetric, rolling), HAC betas, lead-lag and Granger tests, an EIDO overnight premium, six crisis event studies, and quantile regression.
+- Correlations, HAC betas, lead-lag and Granger tests, an EIDO overnight premium, six crisis event studies, quantile regression.
 - A pre-registered walk-forward out-of-sample test (2020–2026) with Diebold–Mariano tests and leakage placebos.
 
 **Key findings.**
 1. Regional and EM equities dominate: weekly correlation ≈ 0.53 with Singapore, MSCI EM and Malaysia; a ten-factor model explains R² = 0.43.
-2. A 1% rupiah depreciation coincides with −0.23% IHSG, other drivers held fixed. Day to day, though, the rupiah follows IHSG.
-3. New York closes lead IHSG by one day (EEM next-day correlation 0.38), but most of that reaction is priced at the open.
-4. Median crisis drawdown: −18%, versus −14% for Singapore and −10% for Malaysia. Correlations jump in sell-offs; only holding USD (+9.5%) or gold in rupiah (+10%) protected rupiah investors.
-5. The oil-shock hypothesis was not supported; an earlier "rising rupiah correlation" finding was a data artefact and was withdrawn.
+2. A 1% rupiah depreciation coincides with −0.71% IHSG on its own, −0.23% after controlling for regional equities (which move with the rupiah); day to day the rupiah follows IHSG.
+3. In-sample, New York closes lead IHSG by one day (EEM next-day correlation 0.38), but most of that reaction is priced at the open.
+4. Median crisis drawdown −18% (Singapore −14%, Malaysia −10%). Correlations jump in sell-offs; of the assets tested, only holding USD (+9.5%) or gold in rupiah (+10%) protected rupiah investors.
+5. The oil-shock hypothesis was not supported; an earlier "rising rupiah correlation" finding was withdrawn as a data artefact.
 
 **Pre-registered verdict.**
-- **Direction of IHSG's next close: not predictable** beyond a naive guess under the locked loss (log loss, p = 0.77), despite a 58.7% vs 51.9% hit rate. The model is overconfident on extreme days.
+- **Direction of IHSG's next close: not predictable** beyond a naive guess under the locked loss (log loss, p = 0.77), despite a 58.7% vs 51.9% hit rate (overconfident on extreme days).
 - **Volatility: VIX helps** out of sample (GARCH-X, p = 0.016).
 
 ## Temuan utama (untuk investor)
@@ -60,27 +60,64 @@
 
 Prediksi yang dicatat **sebelum** hasilnya terjadi adalah **satu-satunya bahan evaluasi jujur** untuk versi model mana pun di masa depan. Hasil 2020–2026 sudah "terpakai" untuk menilai spesifikasi Phase 6.
 
-- **Model beku:** `models/frozen_2026-10-21.json` berisi logit utama (EEM, S&P 500, ΔlogVIX, Δpremium EIDO, IHSG(t)) dan GARCH-X dengan VIX. Keduanya dilatih sekali dengan data 2010 s/d 21 Okt 2026 memakai spesifikasi Phase 6, tanpa tuning. File model beku tidak boleh ditimpa; versi baru = file baru.
-- **Jalankan tiap hari bursa antara ±04:30 dan 09:00 WIB**, yaitu setelah sesi AS final dan sebelum BEI buka:
+### Model dan pembanding beku
+- `models/frozen_2026-10-21.json` berisi logit utama (EEM, S&P 500, ΔlogVIX, Δpremium EIDO, IHSG(t)) dan GARCH-X dengan VIX. Keduanya dilatih sekali dengan data 2010 s/d 21 Okt 2026 memakai spesifikasi Phase 6, tanpa tuning.
+- `models/frozen_2026-10-21_pembanding.json` berisi baseline naif (frekuensi naik di data latih logit beku = 0,537) dan GARCH(1,1) **tanpa** VIX. Keduanya dilatih pada data yang identik, dan pembekuan ulang terbukti mereproduksi model beku.
+- File beku **tidak boleh ditimpa**. Versi baru = file baru.
+
+### Pra-registrasi evaluasi (dikunci 23 Okt 2026 WIB, sebelum baris pertama log tercatat)
+1. **Kapan:** evaluasi pertama dilakukan **setelah 250 baris valid, tidak lebih awal**. Baris valid = dicatat di jendela waktu yang sah (lihat di bawah) dan hasilnya sudah terjadi. `--evaluate` menolak menghitung metrik dan uji sebelum batas ini; yang ditampilkan hanya jumlah baris.
+2. **Arah:** log loss dan uji **Diebold–Mariano (loss = log loss)** vs baseline naif beku (0,537), sama dengan Phase 6. Hit rate, Brier, dan AUC ikut dilaporkan sebagai pelengkap.
+3. **Volatilitas:** **QLIKE** (dan MSE) dengan uji Diebold–Mariano, GARCH-X beku vs GARCH beku tanpa VIX. Proxy realisasi = return kuadrat.
+4. **Hasilnya dilaporkan apa pun hasilnya.** Model beku tidak boleh diubah selama periode ini. Versi model baru harus punya **log terpisah** (file log sendiri) dan pra-registrasi sendiri di README sebelum baris pertamanya.
+
+### Menjalankan
+```bash
+python scripts/daily_signal.py                     # sinyal hari bursa berikutnya (dicatat hanya di jendela waktu)
+python scripts/daily_signal.py --dry-run           # tampilkan saja; angka di luar jendela berlabel SEMENTARA
+python scripts/daily_signal.py --evaluate          # evaluasi pra-registrasi (baru berisi uji setelah 250 baris valid)
+python scripts/daily_signal.py --check-schedule    # cek jam jadwal terhadap jendela waktu, 3 tahun ke depan
+```
+- Script mengunduh data segar dan menerapkan aturan cleaning yang sama, lalu menambahkan satu baris ke `reports/forward_test/log.csv`. Isinya: probabilitas IHSG naik, prakiraan volatilitas harian (1 sd, %), nilai kedua pembanding, dan fitur.
+- Kolom hasil aktual diisi otomatis pada run berikutnya setelah hari target terjadi. Baris prediksi tidak pernah ditimpa; jangan mengedit log secara manual.
+- **Kode keluar:** 0 berarti dicatat, atau dilewati dengan alasan wajar. 1 berarti error yang perlu dicek, misalnya semua data basi atau unduhan gagal.
+
+### Jendela waktu, akhir pekan, dan hari libur
+- **Jendela:** prediksi dengan fitur tanggal t hanya sah dicatat antara **t 21:30 UTC** (sesi AS final; 16:00 ET musim dingin = 21:00 UTC, plus jeda) dan **09:00 WIB pada hari kerja berikutnya** (BEI buka). Sebelum batas awal, Yahoo bisa mengirim bar AS yang masih berjalan. Ini ditemukan saat uji coba: probabilitasnya berubah-ubah 0,400 → 0,398 → 0,399.
+- **Jumat → Senin:** run Senin pagi memakai IHSG Jumat dan sesi AS Jumat untuk memprediksi hari bursa BEI berikutnya. Kalau Senin libur BEI, `target_date` otomatis menjadi Selasa.
+- **Libur BEI:** pada run sesudah hari libur, data IHSG terakhir masih hari sebelum libur. Prediksi untuk tanggal itu sudah tercatat (atau sudah lewat jendela), jadi script mencatat **LEWATI: terlambat**, bukan baris yang salah.
+- **Libur AS saat BEI buka:** fitur sesi AS untuk hari itu tidak ada, sehingga muncul **LEWATI: fitur belum lengkap**. Ini sesuai spesifikasi Phase 6: hari tanpa fitur tidak diprediksi.
+- **Libur panjang** (misalnya Lebaran): pemeriksaan data basi memakai tanggal terbaru dari *semua* seri, jadi libur BEI tidak dianggap error.
+- **Dobel:** run kedua untuk tanggal fitur yang sama tidak menambah baris.
+- Semua skenario di atas diuji di `tests/test_forward.py`.
+
+### Otomatisasi di Mac ini (launchd)
+- **Jadwal:** Senin–Jumat pukul **09:15 waktu Melbourne** (zona waktu Mac). Itu sama dengan 05:15 WIB saat AEDT (Okt–Apr) dan 06:15 WIB saat AEST (Apr–Okt).
+- **Verifikasi:** `--check-schedule` memeriksa 783 run selama 3 tahun dan melintasi semua pergantian DST Australia dan AS. **Semua run di dalam jendela**, dengan margin minimum 45 menit setelah batas awal (75 menit setelah penutupan AS musim dingin) dan 165 menit sebelum BEI buka.
+- **Pasang / copot / status / uji sekali:**
   ```bash
-  python scripts/daily_signal.py
+  scripts/launchd/forward_test.sh install
+  scripts/launchd/forward_test.sh uninstall
+  scripts/launchd/forward_test.sh status
+  scripts/launchd/forward_test.sh run-now
   ```
-  Script mengunduh data segar, menerapkan aturan cleaning yang sama, lalu menambahkan satu baris ke `reports/forward_test/log.csv`: probabilitas IHSG naik di hari bursa berikutnya, prakiraan volatilitas harian (1 sd, %), dan nilai fiturnya.
-- **Penjaga kejujuran:**
-  - **Bar AS belum final:** script menolak mencatat sebelum sesi AS tanggal fitur final (21:30 UTC). Ini ditemukan saat uji coba: Yahoo mengirim bar AS yang masih berjalan di sore hari WIB, dan probabilitasnya ikut berubah-ubah.
-  - **Terlambat:** script juga menolak setelah BEI buka.
-  - **Data basi:** script menolak kalau data IHSG terakhir lebih tua dari 4 hari.
-  - **Fitur belum lengkap:** script menolak kalau ada fitur yang belum lengkap.
-- **Isi log:** baris lama tidak pernah ditimpa. Kolom hasil aktual (`target_date`, `r_aktual_pct`, `y_aktual`) diisi otomatis pada run berikutnya setelah hari target terjadi. Jangan mengedit log secara manual.
-- **Uji coba tanpa menulis log:** `python scripts/daily_signal.py --dry-run`. Angka yang ditampilkan di luar jendela waktu diberi label SEMENTARA.
-- **Evaluasi:** `python scripts/daily_signal.py --evaluate` menghitung hit rate, log loss, Brier, AUC, dan QLIKE **hanya** untuk baris yang tercatat tepat waktu dan hasilnya sudah terjadi.
-  - Bandingkan dengan log loss naif 0,693.
-  - Butuh ratusan hari sebelum layak diuji; ratusan hari, bukan puluhan.
-  - Uji Diebold–Mariano yang sama dengan Phase 6 baru bermakna setelah ±250 hari bursa.
-- **Model baru** (misalnya versi yang dikalibrasi): bekukan sebagai file baru dengan tanggalnya sendiri, dan pra-registrasikan dulu di README. Model itu hanya dievaluasi pada baris log yang dicatat setelah tanggal bekunya.
-- **Status 22 Okt 2026:** model sudah dibekukan, tapi log masih kosong. Baris pertama yang sah baru bisa dibuat di dalam jendela waktu berikutnya.
+- **Log lokal:** output ke `logs/daily_signal.out.log` dan error ke `logs/daily_signal.err.log`. Folder `logs/` tidak di-commit. Python yang dipakai adalah `~/anaconda3/envs/ihsg-corr/bin/python` (ganti lewat variabel `IHSG_PYTHON`).
+- **Log forward tidak di-commit otomatis.** Commit `reports/forward_test/log.csv` secara berkala secara manual.
+- **Kalau Mac sedang sleep pada 09:15:**
+  - launchd menjalankan job yang terlewat **satu kali saat Mac bangun**. Kalau saat itu masih sebelum 09:00 WIB (12:00/13:00 Melbourne), prediksi tetap dicatat. Kalau sudah lewat, script mencatat **LEWATI: terlambat** dan hari itu hilang dari forward test, yang memang seharusnya.
+  - Kalau Mac **mati** (bukan sleep), job tidak berjalan sama sekali.
+- **Opsi supaya Mac bangun otomatis** (BELUM dipasang; butuh persetujuan dan sandi admin):
+  ```bash
+  sudo pmset repeat wakeorpoweron MTWRF 09:05:00
+  ```
+  - Perintah ini membangunkan Mac (atau menyalakannya kalau mati) Senin–Jumat 09:05 waktu lokal. Saat ini belum ada jadwal `pmset repeat` lain di Mac ini, jadi tidak ada yang tertimpa.
+  - Untuk melihat jadwal: `pmset -g sched`. Untuk menghapus: `sudo pmset repeat cancel`.
+  - Laptop sebaiknya tersambung ke listrik supaya bangun penuh dan mendapat jaringan.
+- **Status 23 Okt 2026 WIB:** model dan pembanding sudah dibeku, dan job launchd sudah terpasang. Uji `run-now` pukul 13:17 WIB keluar dengan kode 0: "LEWATI: fitur belum lengkap", karena sesi AS hari itu belum ada. Log masih kosong; baris pertama dicatat pada run terjadwal berikutnya yang sah.
 
 ## Latar belakang & pertanyaan riset
+
+> Semua tanggal catatan di README memakai **WIB** (UTC+7). Phase 1–4 dikerjakan 21 Okt 2026, Phase 5–7 dan model beku 22 Okt 2026, serta pra-registrasi forward test dan otomatisasi 23 Okt 2026, sesuai waktu commit dalam WIB.
 
 Project portfolio data science / quant. Pertanyaan utamanya:
 
@@ -100,9 +137,9 @@ Prinsipnya: **korelasi ≠ prediksi**. Klaim "bisa memberi sinyal" hanya dibuat 
 | 2/7 | Alignment, cleaning, returns (harian/mingguan, IHSG dalam USD; close-to-close) | Selesai (21 Okt 2026); USD/IDR lolos uji ulang → driver |
 | 3/7 | Korelasi statis (harian vs mingguan, Pearson vs Spearman, IDR vs USD), beta HAC, korelasi asimetris | Selesai (21 Okt 2026); lihat "Temuan rinci" |
 | 4/7 | Lead-lag & efek zona waktu (CCF, regresi lead, Granger, premium EIDO; in-sample 2010–2019) | Selesai (21 Okt 2026); lihat "Temuan rinci" |
-| 5/7 | Rolling correlation & regime krisis (event study, quantile regression Brent, aset pelindung) | Selesai (23 Okt 2026); lihat "Temuan rinci" |
-| 6/7 | Uji sinyal out-of-sample (arah & volatilitas, walk-forward 2020–sekarang) | Selesai (23 Okt 2026); lihat "Temuan rinci" |
-| 7/7 | Ringkasan portfolio + demonstrasi pipeline 5 big cap (target configurable) | Selesai (23 Okt 2026) |
+| 5/7 | Rolling correlation & regime krisis (event study, quantile regression Brent, aset pelindung) | Selesai (22 Okt 2026); lihat "Temuan rinci" |
+| 6/7 | Uji sinyal out-of-sample (arah & volatilitas, walk-forward 2020–sekarang) | Selesai (22 Okt 2026); lihat "Temuan rinci" |
+| 7/7 | Ringkasan portfolio + demonstrasi pipeline 5 big cap (target configurable) | Selesai (22 Okt 2026) |
 
 ## Struktur
 
@@ -114,6 +151,8 @@ notebooks/01-07_*.ipynb    # laporan berjalan; hanya memanggil fungsi dari src/
 reports/                   # hasil kecil yang di-commit (CSV, JSON keputusan); target lain di reports/targets/<id>/
 scripts/screening.py       # artefak beku: screening Core vs Nanti 2010-2019
 scripts/daily_signal.py    # forward test harian dengan model beku (lihat "Forward test")
+scripts/launchd/           # pasang/copot jadwal launchd forward test
+logs/                      # log lokal run launchd, tidak di-commit
 models/                    # model beku (JSON) untuk forward test; tidak boleh ditimpa
 tests/                     # pytest dengan data sintetis (tanpa internet)
 data/                      # cache download, tidak di-commit
@@ -244,7 +283,7 @@ Return IHSG dipecah jadi gap pembukaan (close t → open t+1) dan intraday (open
   - Di ^JKSE, satu baris basi diperlakukan sebagai hari libur: 1 Des 2017 (libur Maulid Nabi, Close = kemarin, Volume 0).
   - Semua penghapusan, termasuk 13 hari USD/IDR, ada di `reports/phase2/cleaning_log.csv`.
 
-### 9. Aturan dividen besar (target saham; keputusan pemilik 23 Okt 2026, sebelum data big cap dianalisis)
+### 9. Aturan dividen besar (target saham; keputusan pemilik 22 Okt 2026, sebelum data big cap dianalisis)
 - **Aturan generik untuk semua target berkategori saham:** return pada hari ex-date dengan dividen tunai **> 10% dari harga penutupan sebelumnya** (harga tanpa penyesuaian) dijadikan **NaN** di analisis harian. Di analisis mingguan, return minggu yang memuat ex-date tersebut juga dijadikan NaN.
 - **Alasan:** penyesuaian dividen Yahoo membuat return ex-date terdistorsi saat dividennya sangat besar. Contohnya PTBA 26 Jun 2023: return adjusted +20,9%, padahal total return +14,7%.
 - **Pelaporan:** hasil tanpa aturan ini dilaporkan sebagai sensitivitas. Daftar hari yang terkena dicatat di cleaning log tiap target (`reports/targets/<id>/phase2/cleaning_log.csv`).
@@ -289,7 +328,7 @@ Dikunci 21 Okt 2026, setelah Phase 2 dan **sebelum analisis Phase 3–7 dijalank
 
 ### Spesifikasi Phase 6 (dikunci sebelum Phase 5)
 
-Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) dan **sebelum** analisis lead-lag apa pun dijalankan pada data 2020+. Spesifikasi ini **menggantikan** baris Phase 6 di tabel di atas kalau ada perbedaan: baseline, set fitur, dan loss untuk Diebold–Mariano.
+Dikunci oleh pemilik **22 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) dan **sebelum** analisis lead-lag apa pun dijalankan pada data 2020+. Spesifikasi ini **menggantikan** baris Phase 6 di tabel di atas kalau ada perbedaan: baseline, set fitur, dan loss untuk Diebold–Mariano.
 
 - **OOS:** 2020-01-01 s/d data terakhir. Walk-forward dengan expanding window mulai 2010 dan refit bulanan. **Tidak ada tuning hyperparameter yang memakai data OOS.** Kalau regularisasi logit perlu dipilih, pemilihannya hanya dari data latih di setiap titik refit.
 - **Target arah:** tanda return close-to-close IHSG(t+1).
@@ -307,13 +346,13 @@ Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) da
   - Phase 4 menunjukkan bahwa sebagian besar reaksi IHSG terhadap kabar semalam terjadi di **gap pembukaan**. Karena itu, daya prediksi close-to-close di Phase 6 **TIDAK berarti dapat dieksploitasi**.
   - Kalau data Open 2020+ memungkinkan (setelah hari Open = Close kemarin dibuang), prediksi untuk return **open-to-close** juga dilaporkan sebagai uji **EKSPLORATIF**.
 
-**Rincian implementasi Phase 6.** Ditetapkan 23 Okt 2026, sebelum hasil OOS dilihat, dan sesuai instruksi pemilik:
+**Rincian implementasi Phase 6.** Ditetapkan 22 Okt 2026, sebelum hasil OOS dilihat, dan sesuai instruksi pemilik:
 - **Logit tanpa regularisasi (MLE).** Tidak ada hyperparameter, jadi tidak ada tuning sama sekali. Konvergensi tercatat di semua refit.
 - **GARCH-X ditulis sendiri:** σ²ₜ = (ω + αε²ₜ₋₁ + βσ²ₜ₋₁)·exp(γ·ΔlogVIXₜ₋₁), mean konstan, distribusi normal, return dalam persen.
   - Bentuk perkalian menjamin varians positif, dan menjadi GARCH(1,1) persis saat γ = 0.
   - Backcast dan rekursi mengikuti `arch`. Validasi di data latih 2010–2019: log-likelihood di parameter `arch` identik (selisih 0), dan estimasi sendiri cocok sampai selisih relatif ≤ 1,1·10⁻⁵.
   - Hari tanpa perdagangan VIX diberi ΔlogVIX = 0.
-- **HAR-X mingguan** (instruksi pemilik 23 Okt 2026; menggantikan versi |return| harian di tabel rencana):
+- **HAR-X mingguan** (instruksi pemilik 22 Okt 2026; menggantikan versi |return| harian di tabel rencana):
   - RV minggu = jumlah kuadrat return harian IHSG.
   - Model: log RVₜ₊₁ ~ log rata-rata RV 1, 4, dan 13 minggu (+ ΔlogVIX mingguan).
   - Ramalan = exp(prediksi + s²/2).
@@ -324,8 +363,8 @@ Dikunci oleh pemilik **23 Okt 2026**, setelah Phase 4 (in-sample 2010–2019) da
 
 ### Aturan Phase 5 (dikunci sebelum Phase 5)
 - Analisis Phase 5 boleh memakai seluruh periode (2007–sekarang), tetapi sifatnya **DESKRIPTIF**.
-- **Tidak ada temuan Phase 5 yang boleh mengubah Spesifikasi Phase 6 di atas.** Keputusan pemilik, 23 Okt 2026.
-- **Rincian pelaksanaan dari instruksi pemilik (23 Okt 2026)**, yang lebih spesifik daripada tabel di atas:
+- **Tidak ada temuan Phase 5 yang boleh mengubah Spesifikasi Phase 6 di atas.** Keputusan pemilik, 22 Okt 2026.
+- **Rincian pelaksanaan dari instruksi pemilik (22 Okt 2026)**, yang lebih spesifik daripada tabel di atas:
   - Rolling correlation memakai jendela **52 dan 156 minggu**, menggantikan versi sekunder 250 hari harian.
   - Korelasi event study dibandingkan dengan **250 hari bursa sebelum jendela** (tidak tumpang tindih). Pembanding "normal" dari tabel tetap dilaporkan.
   - Quantile regression Brent memakai kontrol **Tembaga dan EEM**.
@@ -389,7 +428,7 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
 - **EIDO (sinyal semalam):**
   - Return EIDO malam ini saja menjelaskan R² 0,12 dari return IHSG besok. Δpremium (bagian pergerakan EIDO yang belum ada di close IHSG) menjelaskan R² 0,12.
   - Keduanya **menambah informasi di atas S&P 500 dan EEM**: tambahan R² +0,014 (EIDO) dan +0,022 (Δpremium), uji Wald HAC p < 10⁻⁵. Δpremium +1% ↔ IHSG besok +0,14%, setelah S&P 500 dan EEM dikendalikan.
-- **Keputusan fitur EIDO (pemilik, 23 Okt 2026):** Δpremium tetap fitur utama sesuai aturan. z-score spread versi tren boleh diuji di Phase 6 hanya sebagai sensitivitas berlabel "spesifikasi dipilih setelah melihat hasil Phase 4".
+- **Keputusan fitur EIDO (pemilik, 22 Okt 2026):** Δpremium tetap fitur utama sesuai aturan. z-score spread versi tren boleh diuji di Phase 6 hanya sebagai sensitivitas berlabel "spesifikasi dipilih setelah melihat hasil Phase 4".
 - **Kointegrasi EIDO vs IHSG dalam USD bergantung spesifikasi:**
   - Aturan utama, Engle–Granger dengan konstanta: p = 0,10, jadi **tidak terkointegrasi** pada α 5%. Sesuai rencana, yang dipakai adalah Δpremium, bukan z-score spread.
   - Engle–Granger dengan tren (p < 10⁻⁵), Johansen, dan ADF premium mentah (p = 0,035) menunjukkan spread stasioner di sekitar tren. Tren itu wajar: harga EIDO di Yahoo sudah disesuaikan dividen, sedangkan IHSG indeks harga. Half-life spread versi tren sekitar 3,3 hari bursa (informasi saja).
@@ -399,7 +438,7 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
   - Korelasi intraday kemungkinan dibesar-besarkan oleh Open indeks yang memakai harga kemarin untuk saham yang belum diperdagangkan.
   - Hasil ini tidak dipakai untuk kesimpulan utama.
 
-**Phase 5, regime & krisis (23 Okt 2026; DESKRIPTIF, seluruh periode, tidak mengubah Spesifikasi Phase 6)**
+**Phase 5, regime & krisis (22 Okt 2026; DESKRIPTIF, seluruh periode, tidak mengubah Spesifikasi Phase 6)**
 - **Pergeseran pasca-2020: Hang Seng tren, S&P 500 lonjakan sesaat.**
   - Hang Seng (rolling 52 / 156 minggu): rata-rata sebelum 2020 0,45 / 0,49 → 2020–2022 0,48 / 0,52 → **2023–sekarang 0,18 / 0,19**. Penurunannya baru terjadi setelah 2023 dan bertahan, juga di jendela 156 minggu.
   - S&P 500: 0,28 / 0,34 → **2020–2022 0,49 / 0,58** → 2023–sekarang 0,24 / 0,27, kembali ke level lama. Itu guncangan bersama era COVID, bukan pergeseran permanen.
@@ -432,7 +471,7 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
   - **Tidak ada yang berbalik tanda** korelasinya dengan IHSG saat krisis; yang berubah adalah kekuatannya.
 - **Okt 2026 (deskriptif, terpotong, tidak masuk ringkasan):** IHSG −14,8% ke titik terendah sehari setelah jangkar, dengan drawdown jendela −22,4%. STI, KLCI, dan EEM nyaris tidak bergerak (−1,7% s/d 0%), jadi episode ini tampak spesifik Indonesia, bukan guncangan global.
 
-**Phase 6, uji out-of-sample (23 Okt 2026; walk-forward, refit bulanan; OOS 2 Jan 2020 – 20 Okt 2026)**
+**Phase 6, uji out-of-sample (22 Okt 2026; walk-forward, refit bulanan; OOS 2 Jan 2020 – 20 Okt 2026)**
 - **Arah IHSG besok (model utama: EEM, S&P 500, ΔVIX, Δpremium EIDO + IHSG hari ini; 1.588 hari):**
 
   | | Naif | Model utama |
@@ -458,7 +497,7 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
 - **Open-to-close (EKSPLORATIF; 81% hari OOS punya data Open valid):** hit rate 53,1% vs naif 46,7%, DM p = 0,55. Tidak ada bukti daya prediksi setelah harga pembukaan.
 - **Tradeability (sesuai pra-registrasi):** daya prediksi close-to-close tidak berarti dapat dieksploitasi. Sebagian besar reaksi terhadap kabar semalam sudah terjadi di gap pembukaan (Phase 4), dan uji open-to-close tidak menunjukkan sisa daya prediksi.
 
-**Phase 7, demonstrasi big cap (23 Okt 2026; deskriptif kecuali uji OOS volatilitas; bukan rekomendasi saham)**
+**Phase 7, demonstrasi big cap (22 Okt 2026; deskriptif kecuali uji OOS volatilitas; bukan rekomendasi saham)**
 - Pipeline Phase 1–2 dan analisis inti dijalankan ulang untuk BBCA, BBRI, TLKM, PTBA, dan ASII lewat `project.target_id`. Core, aturan, dan periode sama; tidak ada seleksi ulang.
 
 | | BBCA | BBRI | TLKM | PTBA | ASII |
@@ -474,6 +513,9 @@ Semua temuan di bawah adalah **asosiasi in-sample (deskriptif), bukan sinyal dan
 | OOS 2020+: DM QLIKE p (GARCH-X vs GARCH) | 0,22 | 0,10 | 0,21 | 0,18 | 0,13 |
 
 - **Juara tiap dimensi:** paling sensitif ke rupiah = BBRI; ke EM = PTBA (tetapi turun tajam setelah 2020); paling asimetris = TLKM (satu-satunya yang CI-nya tidak memuat nol); paling dalam saat krisis = PTBA; paling responsif ke VIX = PTBA.
+- **Catatan cara membaca:** peringkat "juara" di atas **deskriptif**, dan banyak interval kepercayaannya tumpang tindih, jadi selisih antar-saham umumnya tidak signifikan. Yang paling kuat hanya dua hal:
+  - asimetri TLKM (CI +0,07 s/d +0,38);
+  - perubahan beta yang besar antara 2010–2019 dan 2020+: rupiah TLKM −0,37 → −1,19, beta EEM PTBA 0,66 → 0,30, dan beta IHSG BBRI, PTBA, dan ASII turun 0,3–0,4.
 - **VIX:** γ in-sample signifikan di 4 dari 5 saham, tetapi **tidak satu pun lolos uji OOS per saham** (semua selisih QLIKE negatif, p 0,10–0,22). Untuk IHSG sendiri uji yang sama lolos (p = 0,016).
 - **Aturan dividen besar** hanya mengenai PTBA (5 ex-date, semuanya 2020+: 2020, 2022, 2023, 2024, 2025; rasio 11–30%). Tanpa aturan ini, beta PTBA 2020+ bergeser ≤ 0,014, p DM GARCH-X bergeser 0,18 → 0,21, dan tidak ada "juara" yang berubah.
 - **Data:** ±82–85 baris basi ber-volume nol per saham diperlakukan sebagai libur (aturan Phase 2). 21–24 di antaranya jatuh di hari IHSG buka, terutama 2016–2019. Itu celah data Yahoo, bukan hari tanpa transaksi.

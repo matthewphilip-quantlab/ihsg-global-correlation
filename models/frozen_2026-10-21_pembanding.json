@@ -1,0 +1,16 @@
+{
+  "model_version": "frozen_2026-10-21",
+  "file": "frozen_2026-10-21_pembanding",
+  "as_of": "2026-10-21",
+  "baseline_p_naik": 0.5369984366857739,
+  "n_train_logit": 3838,
+  "garch_tanpa_vix_params": {
+    "mu": 0.04396477741292204,
+    "omega": 0.042578748134882195,
+    "alpha": 0.1363062692340194,
+    "beta": 0.8359266537018514,
+    "gamma": 0.0
+  },
+  "n_train_garch": 4075,
+  "frozen_at_utc": "2026-10-23T06:09:42+00:00"
+}

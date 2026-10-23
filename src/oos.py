@@ -123,6 +123,9 @@ def diebold_mariano(loss_model: np.ndarray, loss_base: np.ndarray, h: int = 1) -
     lrv = dc @ dc / n
     for k in range(1, lags + 1):
         lrv += 2 * (1 - k / (lags + 1)) * (dc[k:] @ dc[:-k]) / n
+    if n < 3 or lrv <= 0:
+        return {"n": n, "selisih_loss_rata": float(d.mean()) if n else np.nan, "dm_hln": np.nan, "p": np.nan,
+                "p_satu_sisi_model_lebih_baik": np.nan}
     dm = d.mean() / np.sqrt(lrv / n)
     hln = dm * np.sqrt((n + 1 - 2 * h + h * (h - 1) / n) / n)
     p = 2 * stats.t.sf(abs(hln), df=n - 1)

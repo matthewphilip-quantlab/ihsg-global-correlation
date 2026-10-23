@@ -15,3 +15,6 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# Log lokal forward test (launchd)
+logs/

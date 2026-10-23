@@ -55,11 +55,26 @@ def test_next_signal_refuses_when_us_session_missing():
         fw.next_signal(cfg, close, m)
 
 
+def test_freeze_comparators_same_training_data():
+    cfg, close = _panel()
+    m = fw.freeze_models(cfg, close, "2020-12-31")
+    c = fw.freeze_comparators(cfg, close, "2020-12-31", m)
+    frame, feats, _, _ = fw.build_inputs(cfg, close.loc[:"2020-12-31"])
+    train = frame.loc[cfg["oos"]["train_start"]:]
+    train = train[train["target_date"] <= pd.Timestamp("2020-12-31")].dropna(subset=feats + ["y"])
+    assert c["baseline_p_naik"] == pytest.approx(train["y"].mean()) and c["garch_tanpa_vix_params"]["gamma"] == 0.0
+    assert c["file"] == "frozen_2020-12-31_pembanding"
+    with pytest.raises(ValueError, match="tidak identik"):
+        fw.freeze_comparators(cfg, close, "2020-11-30", m)
+    sig = fw.next_signal(cfg, close, m, c)
+    assert sig["p_naik_baseline"] == c["baseline_p_naik"] and sig["sigma_pct_tanpa_vix"] > 0
+
+
 def test_log_append_only_fill_and_evaluate(tmp_path):
     cfg, close = _panel(end="2021-03-30")
     m = fw.freeze_models(cfg, close, "2020-12-31")
     path = tmp_path / "log.csv"
-    sig = fw.next_signal(cfg, close, m)
+    sig = fw.next_signal(cfg, close, m, fw.freeze_comparators(cfg, close, "2020-12-31", m))
     on_time = (sig["feature_date"] + pd.Timedelta(hours=20)).tz_localize("UTC").isoformat()
     assert fw.append_log(sig, path, close.index.max(), now_utc=on_time)
     assert not fw.append_log(sig, path, close.index.max(), now_utc=on_time)          # tidak dobel, tidak ditimpa
@@ -70,8 +85,10 @@ def test_log_append_only_fill_and_evaluate(tmp_path):
     log = fw.read_log(path)
     assert log["p_naik"].iloc[0] == pytest.approx(round(sig["p_naik"], 6)) and log["y_aktual"].notna().all()
     assert list(fw.on_time(log)) == [True, False]
-    ev = fw.evaluate_log(path)
-    assert ev["n"].iloc[0] == 1                                                      # baris terlambat dibuang
+    ev = fw.evaluate_log(path)                                                       # pra-registrasi: < 250 baris
+    assert ev["n_valid"].iloc[0] == 1 and "belum dievaluasi" in ev["status"].iloc[0] and "dm_arah_p" not in ev
+    ev1 = fw.evaluate_log(path, min_rows=1)                                          # hanya untuk menguji perhitungan
+    assert ev1["status"].iloc[0] == "dievaluasi" and {"dm_arah_p", "dm_qlike_p", "log_loss_baseline"} <= set(ev1.columns)
 
 
 def test_signal_window_blocks_live_us_bar_and_late_logging():
@@ -82,3 +99,37 @@ def test_signal_window_blocks_live_us_bar_and_late_logging():
     late, why = fw.signal_window(fd, pd.Timestamp("2026-10-23 02:30", tz="UTC"))      # 09:30 WIB: BEI sudah buka
     assert not late and "terlambat" in why
     assert fw.signal_window(pd.Timestamp("2026-10-23"), pd.Timestamp("2026-10-25 23:00", tz="UTC"))[0]   # Jumat -> Senin
+
+
+# ---- jadwal & hari libur ---------------------------------------------------------------------------------
+def test_schedule_0915_melbourne_inside_window_all_year_both_dst():
+    chk = fw.schedule_check(9, 15, "Australia/Melbourne", "2026-10-26", "2029-10-26")
+    assert chk["ok"].all() and len(chk) > 700
+    assert chk["menit_setelah_batas_awal"].min() >= 44 and chk["menit_sebelum_bei_buka"].min() >= 164
+    mon = chk[pd.to_datetime(chk["jadwal_lokal"]).dt.dayofweek == 0]
+    assert (pd.to_datetime(mon["feature_date"]).dt.dayofweek == 4).all()          # Senin pagi Melbourne -> fitur Jumat
+    early = fw.schedule_check(8, 0, "Australia/Melbourne", "2027-01-04", "2027-01-08")                 # AEDT: 21:00 UTC
+    assert early.iloc[0]["ok"] and not early.iloc[1:]["ok"].any()     # Senin sah (fitur Jumat); Selasa-Jumat terlalu awal
+    assert not fw.schedule_check(13, 0, "Australia/Melbourne", "2027-07-05", "2027-07-09")["ok"].any()  # AEST: BEI sudah buka
+
+
+def test_friday_features_predict_next_bei_day_including_monday_holiday(tmp_path):
+    cfg, close = _panel(end="2021-03-26")                                       # Jumat
+    m = fw.freeze_models(cfg, close, "2020-12-31")
+    sig = fw.next_signal(cfg, close, m)
+    assert sig["feature_date"].dayofweek == 4
+    assert fw.signal_window(sig["feature_date"], pd.Timestamp("2021-03-28 22:15", tz="UTC"))[0]   # Senin 09:15 Melbourne
+    path = tmp_path / "log.csv"
+    fw.append_log(sig, path, close.index.max(), now_utc="2021-03-28T22:15:00+00:00")
+    _, later = _panel(end="2021-03-31")
+    later_t = later[cfg["project"]["target_id"]].drop(pd.Timestamp("2021-03-29"))   # Senin libur BEI
+    fw.fill_outcomes(path, later_t)
+    assert pd.Timestamp(fw.read_log(path)["target_date"].iloc[0]) == pd.Timestamp("2021-03-30")   # target = Selasa
+
+
+def test_bei_holiday_midweek_is_skipped_not_mislogged():
+    # BEI libur Selasa: run Rabu pagi Melbourne (Selasa 22:15 UTC) hanya melihat IHSG s/d Senin -> terlambat, tidak dicatat
+    ok, why = fw.signal_window(pd.Timestamp("2027-03-08"), pd.Timestamp("2027-03-09 22:15", tz="UTC"))
+    assert not ok and "terlambat" in why
+    # Mac bangun jam 10:00 Melbourne (setelah BEI buka): launchd menjalankan job, script menolak
+    assert not fw.signal_window(pd.Timestamp("2027-03-09"), pd.Timestamp("2027-03-09 23:00", tz="UTC") + pd.Timedelta(hours=3))[0]
